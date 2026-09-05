@@ -91,7 +91,7 @@ section of the decision-records standard.
 project index files are the coverage maps:
 
 - `docs/specs/README.md` — the **capability map**: which spec covers each
-capability the system exposes.
+  capability the system exposes.
 - `docs/decisions/README.md` — the **structure map**: which records shape
 each component of the system.
 
@@ -101,18 +101,108 @@ document.
 
 ## Adopting in a project
 
+### Install the validator
+
+The recommended way to use the suite is to install the distributable `ter`
+command-line tool. It is a normal Python package and requires Python 3.10 or
+newer.
+
+For an isolated global installation, use `pipx`:
+
+```bash
+pipx install tecfu-engineering-records
+```
+
+Or install it into an existing Python environment with pip:
+
+```bash
+python3 -m pip install tecfu-engineering-records
+```
+
+Verify the installation:
+
+```bash
+ter --version
+ter --help
+```
+
+### Adopt the suite
+
+From the root of the project you want to bring under the standard:
+
+```bash
+ter adopt .
+```
+
+This creates `.engineering-records.yml`, which records the suite version and
+the standards the project has adopted. The validator treats that manifest as
+the project's adoption contract.
+
+Then validate the project:
+
+```bash
+ter validate .
+```
+
+Validation fails if the adoption manifest is missing or inconsistent, a
+standard is missing or stale, or the declared suite/standard versions are not
+supported by the installed validator.
+
+`ter adopt` can be run against another project directory as well:
+
+```bash
+ter adopt /path/to/project
+ter validate /path/to/project
+```
+
+If you intentionally need to replace an existing adoption manifest, use:
+
+```bash
+ter adopt . --force
+```
+
+### Keep the validator current
+
+Check the compatibility information exposed by the installed distribution:
+
+```bash
+ter check-update
+```
+
+The installed validator is versioned independently from the standards it
+validates. Projects can remain on an older supported suite version rather
+than being forced to upgrade immediately; when a suite version reaches its
+support floor, upgrade the project and migrate its adopted standards as
+needed.
+
+For CI, install the same distributable and run the validator as a required
+check:
+
+```yaml
+- name: Install TecFu Engineering Records validator
+  run: python3 -m pip install tecfu-engineering-records
+
+- name: Validate engineering records
+  run: ter validate .
+```
+
+The canonical repository's own CI additionally runs the validator's
+self-tests and the full suite validator. The `validate` job is intentionally
+kept as the stable status-check name so repositories can require it through
+GitHub branch protection or rulesets.
+
+### Standards files
+
 **Format standards** are adopted by copying the directory's
 `<NAME>-STANDARD.md` into the project — `docs/decisions/DECISION-RECORDS-STANDARD.md`,
 `docs/specs/FUNCTIONAL-SPECS-STANDARD.md`, `docs/verification/VERIFICATION-STANDARD.md`,
 `docs/postmortems/POSTMORTEMS-STANDARD.md` — noting the adopted version in
-the project's **`docs/ADOPTION.md`** adoption manifest (one row per adopted
-standard: name, version, file), and re-copying when you upgrade.
-`validate.py --project` fails when the manifest, the copied files, or the
-current suite disagree — including stale rows older than the suite. Keep
-each area's index current — the spec and
-record indexes double as the capability and structure maps above — and copy
-the matching `<NAME>-SKILLS.md` files into the project's agent
-skills directory so coding agents apply the standards unprompted.
+the project's adoption manifest, and re-copying when you upgrade.
+
+Keep each area's index current — the spec and record indexes double as the
+capability and structure maps above — and copy the matching
+`<NAME>-SKILLS.md` files into the project's agent skills directory so coding
+agents apply the standards unprompted.
 
 **Adoption standards** are not copied — projects follow them where they
 stand: `CHANGELOG.md` per Keep a Changelog + SemVer, design docs in
@@ -132,22 +222,24 @@ The suite validates itself.
 
 - **`SUITE.md`** — the version manifest: one row per standard. `validate.py`
   fails when the table and the standard files disagree.
-- **`validate.py`** — the executable validator (stdlib only). `python3
-  validate.py` checks this repo: naming convention, version/changelog/
+- **`ter`** — the distributable validator CLI. Install it with pip/pipx and
+  use `ter adopt`, `ter validate`, and `ter check-update` in adopting
+  repositories.
+- **`validate.py`** — the canonical repository validator (stdlib only).
+  `python3 validate.py` checks this repo: naming convention, version/changelog/
   manifest agreement, cross-reference resolution, and Markdown-link
-  integrity. `python3 validate.py
-  --project <path>` checks an adopting project: numbering (monotonic,
-  contiguous, unique), spec↔verification 1:1 pairing, exact heading order
-  read from the standards' own templates, unfilled placeholders, index
-  rows, the docs/ADOPTION.md adoption manifest against the copied
-  standards and the current suite (staleness), and the document graph —
-  every relative Markdown link resolves, and supersedes / `Reconsiders:` /
-  `superseded by` / `Spec:` / index-row edges point at documents that
-  exist. Content sanity: decision-matrix arithmetic (weights 1-10, scores
-  0-5, per-criterion Basis) with the Closeness margin recomputed from the
-  matrix totals, and acceptance-criteria structure (`AC-N.M` ids, unique,
-  under their `FR-N` group). Fixture-based integration tests
-  (`tests/test_fixtures.py`) run the real validator against
+  integrity. `python3 validate.py --project <path>` checks an adopting
+  project: numbering (monotonic, contiguous, unique), spec↔verification 1:1
+  pairing, exact heading order read from the standards' own templates,
+  unfilled placeholders, index rows, the docs/ADOPTION.md adoption manifest
+  against the copied standards and the current suite (staleness), and the
+  document graph — every relative Markdown link resolves, and supersedes /
+  `Reconsiders:` / `superseded by` / `Spec:` / index-row edges point at
+  documents that exist. Content sanity: decision-matrix arithmetic
+  (weights 1-10, scores 0-5, per-criterion Basis) with the Closeness margin
+  recomputed from the matrix totals, and acceptance-criteria structure
+  (`AC-N.M` ids, unique, under their `FR-N` group). Fixture-based integration
+  tests (`tests/test_fixtures.py`) run the real validator against
   deliberately-broken project fixtures in `tests/fixtures/`.
 
 - **`.github/workflows/validate.yml`** — runs all three on every push and PR.
