@@ -7,7 +7,7 @@ name = "tecfu-engineering-records"
 version = "1.0.0"
 description = "Executable validator and updater for the TecFu Engineering Records standard"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "TecFu" }]
 dependencies = []
