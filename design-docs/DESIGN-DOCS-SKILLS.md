@@ -19,14 +19,23 @@ standard wins — fix this file.
 Trigger: non-trivial work needs its how explored before anything is decided
 or promised.
 
-1. Check the threshold first: if the choice is already contested and
-   significant, go straight to an `ANALYSIS-*` decision record; if the
-   behavior is already agreed, go to a `PROPOSAL-*` spec. A design doc is
-   for the murky middle.
+1. Check the threshold first (`DESIGN-DOCS-STANDARD.md` §1):
+   - single-PR / obvious trade-offs → no design doc; a paragraph in the
+     ticket is enough;
+   - behavior already agreed → `PROPOSAL-*` spec;
+   - choice already contested and significant → `ANALYSIS-*` decision
+     record;
+   - a short spike answers the questions faster → prefer the spike;
+   - writing "to show broad consideration" or for promo visibility → refuse
+     and say so.
+   A design doc is only for the murky middle.
 2. Copy the template (`DESIGN-DOCS-STANDARD.md` §5); save as
-   `docs/design/<topic>.md`, `Status: open`.
+   `docs/design/<topic>.md`, `Status: open`. Keep it short — proportional
+   depth, not exhaustive theater.
 3. Design and Alternatives are the meat — sketch options and what kills
-   them; that is the raw material for decision records later.
+   them (including status quo and "already solved elsewhere"); that is the
+   raw material for decision records later. Inventing alternatives for
+   their own sake is an anti-pattern.
 4. Open questions each get an owner; add the premortem line when the design
    is near final.
 
@@ -67,5 +76,10 @@ Trigger: the design is settled enough to commit.
 - Design docs that never close — the promotion rule is the point.
 - Numbering design docs or freezing them like records — they are working
   papers.
-- Skipping Alternatives considered — unpromoted, it is the most valuable
-  section for the records that follow.
+- Skipping Alternatives considered when real options exist — unpromoted, it
+  is the most valuable section for the records that follow.
+- Cargo-cult docs: inventing alternatives for their own sake, padding every
+  section, or writing a design doc for a single-PR change "to show broad
+  consideration". Prefer a spike or a ticket paragraph.
+- Treating "Promoted to: None" as failure — killing a weak idea early is a
+  successful outcome.

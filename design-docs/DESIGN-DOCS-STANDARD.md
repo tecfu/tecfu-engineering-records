@@ -1,6 +1,6 @@
 # Design Doc — Standard (adoption)
 
-**Version:** 1.3 (2026-09-05)
+**Version:** 1.4 (2026-09-05)
 
 An **adoption standard**: design docs follow the well-known Google design-doc
 convention; this file fixes only where they live, how they relate to the
@@ -24,14 +24,33 @@ decided things (decision records), promised behavior (functional specs), or
 evidence of done (verification reports) — when a design doc starts producing
 those as final output, it has finished its job.
 
+**Threshold — when *not* to write one.** A design doc is for the murky
+middle. Skip it when:
+
+- the change fits in a single PR and the trade-offs are obvious to the
+  people who will review it;
+- the behavior is already agreed (go straight to a `PROPOSAL-*` spec);
+- the choice is already contested and architecturally significant (go
+  straight to an `ANALYSIS-*` decision record);
+- a short spike or throwaway prototype answers the open questions faster
+  than prose would.
+
+Writing a design doc "to show broad consideration" or for promotion
+visibility is an anti-pattern. The suite optimizes for useful alignment and
+for killing bad ideas early, not for document volume.
+
 **Use cases:**
 
-- starting a non-trivial feature or system;
+- starting a non-trivial feature or system whose shape is still unclear;
 - capturing a design discussion that would otherwise live in chat;
-- onboarding a second implementer into the thinking before records exist.
+- onboarding a second implementer into the thinking before records exist;
+- forcing an idea onto the page so that "this is already solved" or "this
+  is a bad idea" becomes visible before code is written.
 
 **Purpose:** so exploration has a home that doesn't have to be tidy — while
-guaranteeing nothing durable stays buried in it.
+guaranteeing nothing durable stays buried in it, and so that writing the
+doc is allowed (and encouraged) to conclude "do nothing" or "already
+solved elsewhere".
 
 ## 2. File conventions
 
@@ -70,6 +89,13 @@ Design; Alternatives considered; Rollout plan; Open questions.** The six
 headings MUST be present, in this order — a section that does not apply is
 written as `None.` — but the convention owns the depth: see the template
 and lineage; we don't redefine it.
+
+**Depth is proportional.** A design doc that invents alternatives for their
+own sake, or pads every section to look thorough, has failed the threshold
+test in §1. Prefer a short, honest document (or a spike) over a long one
+that exists to demonstrate "broad consideration". Status quo and "already
+solved in X" are first-class alternatives; they do not need to be dressed
+up as novel options.
 
 ## 5. Template (thin)
 
@@ -110,9 +136,18 @@ depth the topic needs.}
   the goals/non-goals + alternatives shape, already cited in the suite.
 - **House promotion mechanics** — decision-records §6 and functional-specs
   §6; a design doc is their shared upstream.
+- **Anti-cargo-cult lessons** (HN discussion of the same Google design-doc
+  culture, 2024): design docs are for alignment and for killing weak ideas
+  early; inventing alternatives for their own sake or writing docs for
+  promotion visibility is theater, not engineering. The threshold and
+  proportional-depth rules in §1 and §4 encode that feedback.
 
 ## 7. Changelog
 
+- **1.4 (2026-09-05)** — explicit threshold for when *not* to write a design
+  doc (single-PR rule, prefer spike when faster, no promo theater); killing
+  ideas early and "already solved" as first-class outcomes; proportional
+  depth guidance (§1, §4); lineage note on anti-cargo-cult lessons.
 - **1.3 (2026-09-05)** — external review: closing with no durable output is a
   legitimate terminal outcome — `Promoted to: None — concluded no durable
   output was warranted` (§3); the close-time gate applies only when there is
