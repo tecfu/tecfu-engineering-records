@@ -292,6 +292,8 @@ def check_suite(root):
     for md in sorted(root.rglob("*.md")):
         if ".git" in md.parts:
             continue
+        if md.relative_to(root).parts[0] == "tests":
+            continue  # test fixtures are deliberately broken
         text = md.read_text()
         broken = set(check_links(text, md.parent, root))
         for target in sorted(broken):
