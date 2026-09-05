@@ -16,6 +16,34 @@ criteria that decide when it's done.
 Each standard is defined in exactly one file, versioned in-document — AI
 agents additionally load the matching SKILLS file.
 
+## Install
+
+Package version tracks the suite version (**1.5.0** ↔ suite **1.5**). Requires Python 3.10+.
+
+```bash
+# From this repository (until published to PyPI)
+python3 -m pip install "git+https://github.com/tecfu/tecfu-engineering-records.git"
+
+# Or, once on PyPI:
+# pipx install tecfu-engineering-records
+# python3 -m pip install tecfu-engineering-records
+
+ter --version
+ter --help
+```
+
+Adopt a project in three steps:
+
+```bash
+ter adopt .                          # create .engineering-records.yml
+ter install-standards .              # copy format STANDARD (+ SKILLS) files
+ter validate .                       # check the adoption contract
+```
+
+Partial adoption: `ter adopt . --standard decision-records --standard functional-specs`.
+
+Full walkthrough (format vs adoption standards, CI, upgrades): [Adopting in a project](#adopting-in-a-project).
+
 ## How the two core standards overlap and diverge
 
 ```text
