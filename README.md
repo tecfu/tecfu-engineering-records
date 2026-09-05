@@ -187,6 +187,22 @@ Replace an existing manifest with `ter adopt . --force`. Overwrite stale
 standard copies with `ter install-standards . --force` after reviewing the
 diff.
 
+### Enforce on every push (git hook)
+
+```bash
+ter hooks install          # writes .git/hooks/pre-push — no git config changes
+ter hooks uninstall        # remove it again
+```
+
+The hook runs the ter validation before every push (success is silent,
+failures go to stderr) and blocks the push on failures. The shim prefers the
+installed `ter` package and falls back to a suite vendored at
+`scripts/ter/validate.py`, so both consumption modes gate without
+per-machine configuration. Hooks are client-side: bypass one push with
+`git push --no-verify` and keep CI validation as the backstop. If you
+already use pre-commit, the [pre-commit hook](#git-hooks) is the
+equivalent alternative.
+
 ### Keep the validator current
 
 ```bash
@@ -258,7 +274,10 @@ this Git repo at the pinned `rev`.
 
 ### Raw git hooks
 
-If you do not use pre-commit, a minimal `pre-commit` or `pre-push` hook:
+If you do not use pre-commit, `ter hooks install` writes an equivalent
+pre-push shim automatically (with a vendored-suite fallback) — see
+[Enforce on every push](#enforce-on-every-push-git-hook). A hand-rolled
+hook:
 
 ```bash
 #!/bin/sh

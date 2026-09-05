@@ -1,3 +1,6 @@
+import os
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,8 +10,10 @@ from ter.validator import (
     adopt,
     find_project_root,
     format_standards,
+    install_hooks,
     install_standards,
     suite_metadata,
+    uninstall_hooks,
     validate,
 )
 
@@ -115,3 +120,72 @@ class ValidatorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HookTests(unittest.TestCase):
+    def _repo(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        root = Path(td.name) / "proj"
+        root.mkdir()
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        return root
+
+    def test_install_uninstall_roundtrip(self):
+        root = self._repo()
+        self.assertEqual(install_hooks(root), [])
+        hook = root / ".git" / "hooks" / "pre-push"
+        text = hook.read_text()
+        self.assertIn("ter-managed git hook", text)
+        self.assertIn("ter validate", text)
+        self.assertTrue(os.access(hook, os.X_OK))
+        self.assertEqual(install_hooks(root), [])  # idempotent reinstall
+        self.assertEqual(uninstall_hooks(root), [])
+        self.assertFalse(hook.exists())
+
+    def test_install_refuses_foreign_hook(self):
+        root = self._repo()
+        hook = root / ".git" / "hooks" / "pre-push"
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        hook.write_text("#!/bin/sh\necho custom\n")
+        self.assertIn("refusing to overwrite", install_hooks(root)[0])
+        self.assertIn("not ter-managed", uninstall_hooks(root)[0])
+        self.assertEqual(hook.read_text(), "#!/bin/sh\necho custom\n")
+        self.assertEqual(install_hooks(root, force=True), [])  # forced replace
+        self.assertIn("ter-managed git hook", hook.read_text())
+
+    def test_install_outside_git_repo(self):
+        with tempfile.TemporaryDirectory() as td:
+            self.assertIn("not a git repository", install_hooks(Path(td))[0])
+
+    def _no_ter_env(self):
+        """PATH with only the tools the shim needs — an installed ter on PATH
+        (as in the CI test environment) must not change these outcomes."""
+        bin_dir = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, bin_dir, ignore_errors=True)
+        for tool in ("sh", "git", "cat", "python3"):
+            src = shutil.which(tool)
+            if src:
+                os.symlink(src, bin_dir / tool)
+        return {**os.environ, "PATH": str(bin_dir)}
+
+    def test_shim_fails_closed_without_validator(self):
+        root = self._repo()
+        self.assertEqual(install_hooks(root), [])
+        hook = root / ".git" / "hooks" / "pre-push"
+        r = subprocess.run(["sh", str(hook)], input="", capture_output=True,
+                           text=True, cwd=root, env=self._no_ter_env())
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("no validator found", r.stderr)
+
+    def test_shim_runs_vendored_validator(self):
+        root = self._repo()
+        self.assertEqual(install_hooks(root), [])
+        hook = root / ".git" / "hooks" / "pre-push"
+        stub = root / "scripts" / "ter" / "validate.py"
+        stub.parent.mkdir(parents=True)
+        stub.write_text("import sys\nsys.exit(0)\n")
+        r = subprocess.run(["sh", str(hook)], input="", capture_output=True,
+                           text=True, cwd=root, env=self._no_ter_env())
+        self.assertEqual(r.returncode, 0, r.stderr)
+

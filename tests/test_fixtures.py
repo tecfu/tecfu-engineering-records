@@ -48,6 +48,9 @@ CASES = {
     "bad-matrix": (1, ["Closeness says 9 points but matrix totals differ by 7"]),
     "missing-closeness": (1, ["no Closeness line after the Decision matrix"]),
     "bad-acceptance": (1, ["duplicate AC id AC-1.1"]),
+    # nested suite checkout (vendored scripts/ter/ with SUITE.md): its broken
+    # fixtures and standards are template sources, not project content
+    "vendored-suite": (0, []),
 }
 
 
@@ -64,7 +67,11 @@ def materialize(name, dest):
         if d.is_dir():
             shutil.copy(REPO / sdir / sfile, d / sfile)
     # adoption manifest: one row per copied file, at current suite versions
-    copies = sorted(str(p.relative_to(dest)) for p in dest.rglob("*-STANDARD.md"))
+    nested = validate.nested_suite_dirs(dest)
+    copies = sorted(
+        str(p.relative_to(dest)) for p in dest.rglob("*-STANDARD.md")
+        if not (nested & set(p.parents))
+    )
     if copies:
         suite_rows = {}
         for line in (REPO / "SUITE.md").read_text().splitlines():
