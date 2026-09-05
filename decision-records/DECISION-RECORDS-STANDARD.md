@@ -1,6 +1,6 @@
 # Design Decision Records — Standard
 
-**Version:** 1.6 (2026-09-05)
+**Version:** 1.7 (2026-09-05)
 
 The single-file definition of how our projects record design decisions: one
 short document per architecturally significant decision, written so a stranger
@@ -71,13 +71,13 @@ original deciders had.
 | `proposed` | recommendation written, not yet agreed |
 | `accepted` | agreed; the decision is in force |
 | `rejected` | considered and declined (keep the record — it prevents re-litigating) |
+| `superseded by NNN` | replaced by a newer decision; the old record stays, unedited |
+| `deprecated` | no longer applies (outdated by context, not by a successor) |
 
 A `rejected` record may carry one later annotation — the **only** permitted
 edit to a decided record besides the supersede line: append
 `— reconsidered by NNN` to the Status line. A new proposal that revisits
 rejected ground cites the old record in References: `Reconsiders: NNN`.
-| `superseded by NNN` | replaced by a newer decision; the old record stays, unedited |
-| `deprecated` | no longer applies (outdated by context, not by a successor) |
 
 Records are **immutable once accepted**: never edit a decision in place. When
 circumstances change, write the next record and mark the old one `superseded by
@@ -299,6 +299,9 @@ The convention this standard is based on, in order of influence:
 
 ## 9. Changelog
 
+- **1.7 (2026-09-05)** — repaired the lifecycle table (§3): the
+  reconsideration-annotation paragraph sat inside it, orphaning the
+  `superseded by NNN` and `deprecated` rows into a headerless fragment.
 - **1.6 (2026-09-05)** — external review: status quo optional when not viable (§4, §7); per-criterion score basis (§5); reconsidered-by annotation and `Reconsiders: NNN` (§3, §7); collision-safe numbering (§6); nested headings and one-sitting length (§4).
 - **1.5 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `DECISION-RECORDS-STANDARD.md` and `DECISION-RECORDS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.4 (2026-09-05)** — record index upgraded to the **structure map**

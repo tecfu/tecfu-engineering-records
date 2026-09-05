@@ -129,10 +129,14 @@ The suite validates itself.
   fails when the table and the standard files disagree.
 - **`validate.py`** — the executable validator (stdlib only). `python3
   validate.py` checks this repo: naming convention, version/changelog/
-  manifest agreement, cross-reference resolution. `python3 validate.py
+  manifest agreement, cross-reference resolution, and Markdown-link
+  integrity. `python3 validate.py
   --project <path>` checks an adopting project: numbering (monotonic,
   contiguous, unique), spec↔verification 1:1 pairing, exact heading order
   read from the standards' own templates, unfilled placeholders, index
-  rows, and the docs/ADOPTION.md adoption manifest against the copied
-  standards and the current suite (staleness).
+  rows, the docs/ADOPTION.md adoption manifest against the copied
+  standards and the current suite (staleness), and the document graph —
+  every relative Markdown link resolves, and supersedes / `Reconsiders:` /
+  `superseded by` / `Spec:` / index-row edges point at documents that
+  exist.
 - **`.github/workflows/validate.yml`** — runs both on every push and PR.

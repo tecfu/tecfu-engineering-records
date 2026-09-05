@@ -11,9 +11,11 @@ Project mode:
   checks an adopting project's docs/ tree: filename regexes, numbering
   (monotonic, contiguous, unique), spec<->verification 1:1 pairing, exact
   heading order (read from the standards' own templates — single source of
-  truth), unfilled placeholders, index rows, and the adoption manifest
+  truth), unfilled placeholders, index rows, the adoption manifest
   (docs/ADOPTION.md) against the copied standard files and current suite
-  versions (staleness).
+  versions (staleness), and the document graph: every relative Markdown
+  link resolves, and supersedes/reconsiders/Spec:/index edges point at
+  documents that exist.
 
 Self-test:
     python3 validate.py --self-test
@@ -24,6 +26,7 @@ Exit 0 = clean, 1 = failures found. Stdlib only.
 import re
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 DIRS = {
     "decision-records": "DECISION-RECORDS",
@@ -59,6 +62,17 @@ COPIED_RE = re.compile(r"^[A-Z][A-Z0-9-]*-(?:STANDARD|SKILLS)\.md$")
 ADOPTION_ROW_RE = re.compile(
     r"^\|\s*([^|]+?)\s*\|\s*(\d+\.\d+)\s*\|\s*([^|]+?)\s*\|", re.M
 )
+# Markdown links: inline [t](u), reference uses [t][id], definitions [id]: u
+INLINE_LINK_RE = re.compile(
+    r"\[[^\]]*\]\(\s*(?:<([^>]*)>|([^)\s]+))(?:\s+\"[^\"]*\")?\s*\)"
+)
+REFDEF_RE = re.compile(r"(?m)^\s{0,3}\[([^\]]+)\]:\s+(\S+)")
+REFUSE_RE = re.compile(r"\[([^\]]+)\]\[([^\]]*)\]")
+# document-graph edges
+SUPERSEDES_LINE_RE = re.compile(r"(?im)^\*\*Supersedes:\*\*\s*(.+)$")
+STATUS_SUPERSEDED_RE = re.compile(r"superseded by (\d{3})(?!\d)")
+RECONSIDERS_RE = re.compile(r"\bReconsiders:\s*(\d{3})(?!\d)")
+SPEC_LINE_RE = re.compile(r"(?im)^\*\*Spec:\*\*\s*(.+)$")
 
 
 # ---------- reusable checks (exercised by --self-test) ----------
@@ -118,6 +132,79 @@ def suite_versions(suite):
         if p.exists() and (m := VER_RE.search(p.read_text())):
             out[prefix] = m.group(1)
     return out
+
+
+def _strip_code(text):
+    """Text minus fenced blocks and inline code spans — code is not links."""
+    out, lines, i, n = [], text.splitlines(), 0, len(text.splitlines())
+    while i < n:
+        m = re.match(r"^(`{3,})", lines[i])
+        if m:
+            i += 1
+            while i < n and not re.match(rf"^`{{{len(m.group(1))},}}\s*$", lines[i]):
+                i += 1
+        else:
+            out.append(re.sub(r"`[^`]*`", "", lines[i]))
+        i += 1
+    return "\n".join(out)
+
+
+def check_links(text, base, root):
+    """Relative Markdown-link targets must resolve (file-relative, then root).
+
+    Returns the failing targets. External schemes (http:, mailto:) and
+    anchor-only links are skipped; code fences/spans are not links.
+    """
+    t = _strip_code(text)
+    targets = [m.group(1) or m.group(2) for m in INLINE_LINK_RE.finditer(t)]
+    defs = {m.group(1).strip().lower(): m.group(2) for m in REFDEF_RE.finditer(t)}
+    for m in REFUSE_RE.finditer(t):
+        targets.append(defs.get((m.group(2) or m.group(1)).strip().lower()))
+    problems = []
+    for target in targets:
+        if target is None:
+            problems.append("undefined reference-style link")
+            continue
+        path = unquote(target.split("#", 1)[0])
+        if not path or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", path):
+            continue
+        if not any(c.exists() for c in (base / path, root / path)):
+            problems.append(target)
+    return problems
+
+
+def check_supersedes(text, nums):
+    """Supersedes / Reconsiders / `superseded by` edges must point at
+    documents that exist in the same area."""
+    targets = set(STATUS_SUPERSEDED_RE.findall(text)) | set(RECONSIDERS_RE.findall(text))
+    m = SUPERSEDES_LINE_RE.search(text)
+    if m and m.group(1).strip() not in ("—", "-", "None", ""):
+        targets |= set(re.findall(r"\b(\d{3})\b", m.group(1)))
+    known = {f"{n:03d}" for n in nums}
+    return [
+        f"reference {n} does not exist in this area (have {sorted(known)})"
+        for n in sorted(targets - known)
+    ]
+
+
+def check_spec_ref(text, base, root):
+    """A verification report's Spec: header must resolve to a real spec."""
+    m = SPEC_LINE_RE.search(text)
+    if not m:
+        return ["no '**Spec:**' header line"]
+    targets = [mm.group(1) or mm.group(2) for mm in INLINE_LINK_RE.finditer(m.group(1))]
+    if not targets:
+        raw = m.group(1).strip()
+        if raw.startswith("{"):
+            return []  # unfilled placeholder — caught by check_placeholders
+        targets = [raw]
+    problems = []
+    for t in targets:
+        path = unquote(t.split("#", 1)[0])
+        cand = next((c.resolve() for c in (base / path, root / path) if c.exists()), None)
+        if cand is None or "specs" not in cand.parts:
+            problems.append(f"Spec: '{path}' does not resolve to a spec under docs/specs/")
+    return problems
 
 
 def check_adoption(rows, copies, current):
@@ -202,7 +289,12 @@ def check_suite(root):
         if ".git" in md.parts:
             continue
         text = md.read_text()
+        broken = set(check_links(text, md.parent, root))
+        for target in sorted(broken):
+            problems.append(f"{md.relative_to(root)}: broken link {target}")
         for ref in sorted(set(REF_RE.findall(text))):
+            if ref in broken:
+                continue
             # refs into an adopting project's docs/ tree (docs/decisions/...)
             # only resolve in project mode
             if ref.startswith("docs/"):
@@ -227,9 +319,9 @@ def check_suite(root):
 def check_project(root):
     problems = []
     suite = Path(__file__).resolve().parent
-    spec_nums = report_nums = None
 
-    for area, (sdir, sfile) in AREAS.items():
+    areas = {}  # area -> (dir, numbered docs, numbers)
+    for area in AREAS:
         p = root / area
         if not p.is_dir():
             problems.append(f"missing {p} (adopt the standard first)")
@@ -239,15 +331,30 @@ def check_project(root):
         # via the adoption manifest below, not as numbered content documents
         docs = [n for n in names if not COPIED_RE.match(n)]
         problems += [f"{area}: {x}" for x in check_numbering(docs)]
+        nums = {int(m.group(1)) for n in docs if (m := NUM_RE.match(n))}
+        areas[area] = (p, docs, nums)
 
+    if "docs/specs" in areas and "docs/verification" in areas:
+        problems += check_pairing(
+            areas["docs/specs"][2], areas["docs/verification"][2]
+        )
+
+    for area, (p, docs, nums) in areas.items():
+        sdir, sfile = AREAS[area]
         req = headings_from_template(suite / sdir / sfile)
         if req is None:
             problems.append(f"cannot parse template headings from {sdir}/{sfile}")
         for name in docs:
             text = (p / name).read_text()
             if req is not None:
-                problems += [f"{area}/{name}: {x}" for x in check_headings_order(text, req)]
+                problems += [
+                    f"{area}/{name}: {x}" for x in check_headings_order(text, req)
+                ]
             problems += [f"{area}/{name}: {x}" for x in check_placeholders(text)]
+            if area in ("docs/specs", "docs/decisions"):
+                problems += [f"{area}/{name}: {x}" for x in check_supersedes(text, nums)]
+            if area == "docs/verification":
+                problems += [f"{area}/{name}: {x}" for x in check_spec_ref(text, p, root)]
 
         idx = p / "README.md"
         if not idx.exists():
@@ -258,14 +365,18 @@ def check_project(root):
                 if name not in idx_text:
                     problems.append(f"{idx}: no index row for {name}")
 
-        nums = {int(m.group(1)) for n in docs if (m := NUM_RE.match(n))}
-        if area == "docs/specs":
-            spec_nums = nums
-        if area == "docs/verification":
-            report_nums = nums
-
-    if spec_nums is not None and report_nums is not None:
-        problems += check_pairing(spec_nums, report_nums)
+    # document graph: every relative Markdown link in the project resolves
+    # (spec/report References, design-doc Promoted to:, index rows, …).
+    # Adopted copies are skipped — the suite validates them against itself.
+    seen = set()
+    for md in sorted(root.rglob("*.md")):
+        if COPIED_RE.match(md.name):
+            continue
+        rel = md.relative_to(root)
+        for t in check_links(md.read_text(), md.parent, root):
+            if (rel, t) not in seen:
+                seen.add((rel, t))
+                problems.append(f"{rel}: broken link {t}")
 
     copies = {}
     for pth in sorted(root.rglob("*-STANDARD.md")):
@@ -368,7 +479,43 @@ def self_test():
         p.write_text("no template here\n")
         assert headings_from_template(p) is None
 
-    print("self-test OK (18 assertions)")
+    # document graph: links, supersedes edges, spec refs
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td)
+        (d / "b.md").write_text("x")
+        sub = d / "sub"
+        sub.mkdir()
+        assert check_links("[a](b.md) [e](https://x.y) [s](#sec)", d, d) == []
+        assert check_links("[x](missing.md)", d, d) == ["missing.md"]
+        assert check_links("[x](b.md)", sub, d) == []  # root-relative fallback
+        assert check_links("```\n[x](missing.md)\n```\n[ok](b.md)", d, d) == []
+        assert check_links("[d][ref]\n\n[ref]: b.md", d, d) == []
+        assert check_links("[d][ghost]", d, d) == ["undefined reference-style link"]
+        assert check_supersedes("**Supersedes:** —", {1}) == []
+        assert check_supersedes(
+            "**Supersedes:** 001\n**Status:** superseded by 002", {1, 2}
+        ) == []
+        assert any(
+            "does not exist" in p
+            for p in check_supersedes(
+                "**Status:** superseded by 009\nReferences: `Reconsiders: 008`", {1}
+            )
+        )
+        assert check_supersedes("superseded by 2024", {1}) == []  # not a 3-digit ref
+        (d / "docs" / "specs").mkdir(parents=True)
+        (d / "docs" / "specs" / "001-a.md").write_text("s")
+        v = d / "docs" / "verification"
+        v.mkdir()
+        assert check_spec_ref("**Spec:** docs/specs/001-a.md", v, d) == []
+        assert check_spec_ref("**Spec:** [a](../specs/001-a.md)", v, d) == []
+        assert any(
+            "does not resolve" in p
+            for p in check_spec_ref("**Spec:** docs/specs/999-z.md", v, d)
+        )
+        assert check_spec_ref("**Spec:** {link to the spec}", v, d) == []
+        assert any("no '**Spec:**'" in p for p in check_spec_ref("x", v, d))
+
+    print("self-test OK (33 assertions)")
     return 0
 
 
