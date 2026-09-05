@@ -54,9 +54,10 @@ small tweak: a paragraph in the ticket/PR, not a spec.
 Trigger: the approver approves or declines a proposed `PROPOSAL-<TOPIC>.md`.
 
 1. `git mv docs/PROPOSAL-<TOPIC>.md docs/specs/NNN-<topic-slug>.md` using the
-   next free number — never reuse, never renumber. Re-list the directory
-   immediately before naming; if your number was taken while you worked,
-   take the next one (`validate.py` flags duplicates).
+   next free number — never reuse, never renumber. A numbering gap is an
+   error (`validate.py` flags it): the next free number fills it. Re-list
+   the directory immediately before naming; if your number was taken while
+   you worked, take the next one (`validate.py` flags duplicates).
 2. Set `Status:` to `approved` or `declined`; set `Date:` to the approval
    date.
 3. Add the index row to the project's `docs/specs/README.md`.

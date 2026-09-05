@@ -1,6 +1,6 @@
 # Functional Specification — Standard
 
-**Version:** 1.4 (2026-09-05)
+**Version:** 1.5 (2026-09-05)
 
 The single-file definition of how our projects specify user-visible behavior:
 one short document per behavior change, written so the people building it know
@@ -55,9 +55,12 @@ so what was promised is on record when questions come up later.
 
 - Approved specs live in the adopting project's `docs/specs/`, named
   `NNN-short-noun-phrase.md` — 3-digit zero-padded sequential number
-  (`001-offline-export-for-telemetry.md`). Numbers are monotonic and **never
-  reused**, and are assigned **when the spec is approved**, not when the draft
-  is written.
+  (`001-offline-export-for-telemetry.md`). Numbers are monotonic,
+  **contiguous from 001**, and **never reused**: a gap (a missing number)
+  is an error — it means a file was deleted or a number skipped; never
+  renumber to close it, restore the file or let the next free number fill
+  it. Numbers are assigned **when the spec is approved**, not when the
+  draft is written.
 - A draft that has not been approved yet lives in the project's `docs/` as
   `PROPOSAL-<TOPIC>.md` (uppercase topic, no number) — same format,
   `Status: proposed`. On approval or decline it is promoted (§6).
@@ -265,6 +268,9 @@ The convention this standard is based on, in order of influence:
 
 ## 9. Changelog
 
+- **1.5 (2026-09-05)** — file conventions (§2): numbering gaps are errors —
+  numbers are contiguous from 001; never renumber, restore the file or let
+  the next free number fill the gap.
 - **1.4 (2026-09-05)** — external review: append-only immutability model (§3); AC-N.M acceptance-criterion identifiers (§4, §5, §7); uppercase RFC 2119 keywords (§5, §7); collision-safe numbering (§6); nested headings and one-sitting length (§4).
 - **1.3 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `FUNCTIONAL-SPECS-STANDARD.md` and `FUNCTIONAL-SPECS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.2 (2026-09-05)** — spec index upgraded to the **capability map**

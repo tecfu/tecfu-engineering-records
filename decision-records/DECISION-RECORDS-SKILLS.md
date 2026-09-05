@@ -52,9 +52,10 @@ record.
 Trigger: the owner accepts or rejects a proposed `ANALYSIS-<TOPIC>.md`.
 
 1. `git mv docs/ANALYSIS-<TOPIC>.md docs/decisions/NNN-<topic-slug>.md`
-   using the next free number — never reuse, never renumber. Re-list the
-   directory immediately before naming; if your number was taken while you
-   worked, take the next one (`validate.py` flags duplicates).
+   using the next free number — never reuse, never renumber. A numbering
+   gap is an error (`validate.py` flags it): the next free number fills
+   it. Re-list the directory immediately before naming; if your number was
+   taken while you worked, take the next one (`validate.py` flags duplicates).
 2. Set `Status:` to `accepted` or `rejected`; set `Date:` to the decision
    date.
 3. Add the index row to the project's `docs/decisions/README.md`.

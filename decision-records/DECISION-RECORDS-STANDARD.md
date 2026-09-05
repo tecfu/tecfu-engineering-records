@@ -1,6 +1,6 @@
 # Design Decision Records — Standard
 
-**Version:** 1.7 (2026-09-05)
+**Version:** 1.8 (2026-09-05)
 
 The single-file definition of how our projects record design decisions: one
 short document per architecturally significant decision, written so a stranger
@@ -54,9 +54,11 @@ original deciders had.
 
 - Decided records live in the adopting project's `docs/decisions/`, named
   `NNN-short-noun-phrase.md` — 3-digit zero-padded sequential number
-  (`001-swarm-for-onprem-fleet.md`). Numbers are monotonic and **never
-  reused**, and are assigned **when the decision is made**, not when the
-  analysis is written.
+  (`001-swarm-for-onprem-fleet.md`). Numbers are monotonic, **contiguous
+  from 001**, and **never reused**: a gap (a missing number) is an error —
+  it means a file was deleted or a number skipped; never renumber to close
+  it, restore the file or let the next free number fill it. Numbers are
+  assigned **when the decision is made**, not when the analysis is written.
 - A recommendation that has not been decided yet lives in the project's
   `docs/` as `ANALYSIS-<TOPIC>.md` (uppercase topic, no number) — same
   format, `Status: proposed`. On accept/reject it is promoted (§6).
@@ -299,6 +301,9 @@ The convention this standard is based on, in order of influence:
 
 ## 9. Changelog
 
+- **1.8 (2026-09-05)** — file conventions (§2): numbering gaps are errors —
+  numbers are contiguous from 001; never renumber, restore the file or let
+  the next free number fill the gap.
 - **1.7 (2026-09-05)** — repaired the lifecycle table (§3): the
   reconsideration-annotation paragraph sat inside it, orphaning the
   `superseded by NNN` and `deprecated` rows into a headerless fragment.

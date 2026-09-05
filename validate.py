@@ -89,10 +89,14 @@ def check_numbering(names):
     dupes = sorted({x for x in nums if nums.count(x) > 1})
     if dupes:
         problems.append(f"duplicate numbers: {dupes}")
-    for i, x in enumerate(sorted(set(nums)), 1):
-        if x != i:
-            problems.append(f"numbering not contiguous from 001: {x} at position {i}")
-            break
+    if nums:
+        missing = [f"{i:03d}" for i in range(1, max(nums) + 1) if i not in set(nums)]
+        if missing:
+            problems.append(
+                f"numbering gap: missing {', '.join(missing)} "
+                "(a deleted file or skipped number — restore it or let the "
+                "next free number fill it; never renumber)"
+            )
     return problems
 
 
@@ -442,7 +446,8 @@ def self_test():
     import tempfile
 
     assert check_numbering(["001-a.md", "002-b.md"]) == []
-    assert any("contiguous" in p for p in check_numbering(["001-a.md", "003-c.md"]))
+    assert any("numbering gap" in p for p in check_numbering(["001-a.md", "003-c.md"]))
+    assert any("numbering gap" in p for p in check_numbering(["002-a.md"]))
     assert any("duplicate" in p for p in check_numbering(["001-a.md", "001-b.md"]))
     assert any("bad filename" in p for p in check_numbering(["1-a.md"]))
     assert check_headings_order("## A\n## B\n", ["A", "B"]) == []
