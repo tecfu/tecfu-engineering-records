@@ -220,6 +220,69 @@ Undecided work lives beside the indexes until promoted:
 file.
 
 
+
+## Git hooks
+
+`ter validate` is safe to run non-interactively (exit `0` / `1`, no prompts).
+Use `--quiet` in hooks so success is silent and failures still print to stderr.
+
+### pre-commit (recommended)
+
+This repository publishes a [pre-commit](https://pre-commit.com) hook. In an
+**adopting** project:
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/tecfu/tecfu-engineering-records
+    rev: v1.5.0   # pin a release tag
+    hooks:
+      - id: ter-validate
+```
+
+Install and enable:
+
+```bash
+pipx install pre-commit   # once
+pre-commit install
+pre-commit run ter-validate --all-files
+```
+
+The hook runs `ter validate --quiet` and only when staged paths touch
+`.engineering-records.yml` or `docs/specs|decisions|verification|postmortems/`.
+Skip one commit with `SKIP=ter-validate git commit` (pre-commit convention)
+or `git commit --no-verify` when you must.
+
+Until the package is on PyPI, pre-commit installs the hook environment from
+this Git repo at the pinned `rev`.
+
+### Raw git hooks
+
+If you do not use pre-commit, a minimal `pre-commit` or `pre-push` hook:
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit  (chmod +x)
+ter validate --quiet || exit 1
+```
+
+`ter` resolves the adoption root by walking parents for
+`.engineering-records.yml`, so the hook works even when git’s cwd is a
+subdirectory.
+
+### What the hook checks
+
+`ter validate` checks the adoption contract: manifest, declared format
+standard copies and versions, and required docs areas/indexes. For full
+document-graph checks (numbering, headings, pairing, links), also run in CI:
+
+```bash
+python3 /path/to/tecfu-engineering-records/validate.py --project .
+```
+
+Do **not** run `ter adopt` or `ter install-standards` inside a hook — hooks
+should not mutate the tree.
+
 ## Tooling
 
 The suite validates itself.

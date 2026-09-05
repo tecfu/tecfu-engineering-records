@@ -5,7 +5,22 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .validator import adopt, check_update, install_standards, validate
+from .validator import (
+    adopt,
+    check_update,
+    find_project_root,
+    install_standards,
+    validate,
+)
+
+
+def _resolve_root(path: str | Path) -> Path:
+    """Resolve path; if no manifest here, walk parents for adoption root."""
+    start = Path(path).resolve()
+    if (start / ".engineering-records.yml").is_file():
+        return start
+    found = find_project_root(start)
+    return found if found is not None else start
 
 
 def main(argv=None) -> int:
@@ -21,6 +36,12 @@ def main(argv=None) -> int:
         help="validate an adopting repository (.engineering-records.yml + format standards)",
     )
     p_validate.add_argument("path", nargs="?", default=".")
+    p_validate.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="on success print nothing; failures still go to stderr (ideal for git hooks)",
+    )
 
     p_adopt = sub.add_parser(
         "adopt",
@@ -54,18 +75,22 @@ def main(argv=None) -> int:
     p_update.add_argument("path", nargs="?", default=".", help=argparse.SUPPRESS)
 
     args = parser.parse_args(argv)
-    root = Path(getattr(args, "path", ".")).resolve()
+    raw_path = Path(getattr(args, "path", ".")).resolve()
 
     if args.command == "validate":
+        root = _resolve_root(raw_path)
         problems = validate(root)
         if problems:
             for problem in problems:
                 print(f"ERROR: {problem}", file=sys.stderr)
             return 1
-        print(f"OK: {root} conforms to tecfu-engineering-records suite")
+        if not args.quiet:
+            print(f"OK: {root} conforms to tecfu-engineering-records suite")
         return 0
 
     if args.command == "adopt":
+        # adopt intentionally uses the given path (create manifest here)
+        root = raw_path
         problems = adopt(root, force=args.force, standards=args.standards)
         if problems:
             for problem in problems:
@@ -76,6 +101,7 @@ def main(argv=None) -> int:
         return 0
 
     if args.command == "install-standards":
+        root = _resolve_root(raw_path)
         problems = install_standards(root, force=args.force)
         if problems:
             for problem in problems:
