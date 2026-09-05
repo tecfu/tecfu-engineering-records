@@ -5,26 +5,56 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .validator import adopt, check_update, validate
+from .validator import adopt, check_update, install_standards, validate
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(prog="ter", description="TecFu Engineering Records validator")
+    parser = argparse.ArgumentParser(
+        prog="ter",
+        description="TecFu Engineering Records — adoption validator and standard installer",
+    )
     parser.add_argument("--version", action="version", version=f"ter {__version__}")
     sub = parser.add_subparsers(dest="command")
 
-    p_validate = sub.add_parser("validate", help="validate an adopting repository")
+    p_validate = sub.add_parser(
+        "validate",
+        help="validate an adopting repository (.engineering-records.yml + format standards)",
+    )
     p_validate.add_argument("path", nargs="?", default=".")
 
-    p_adopt = sub.add_parser("adopt", help="create the adoption manifest")
+    p_adopt = sub.add_parser(
+        "adopt",
+        help="create .engineering-records.yml (format standards by default; partial via --standard)",
+    )
     p_adopt.add_argument("path", nargs="?", default=".")
     p_adopt.add_argument("--force", action="store_true")
+    p_adopt.add_argument(
+        "--standard",
+        action="append",
+        dest="standards",
+        metavar="NAME",
+        help="declare only this standard (repeatable); default = all format standards",
+    )
 
-    p_update = sub.add_parser("check-update", help="show the installed suite compatibility floor")
+    p_install = sub.add_parser(
+        "install-standards",
+        help="copy declared format STANDARD (and SKILLS) files from the package into the project",
+    )
+    p_install.add_argument("path", nargs="?", default=".")
+    p_install.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite existing copies even when versions differ",
+    )
+
+    p_update = sub.add_parser(
+        "check-update",
+        help="show installed suite version and minimum supported floor",
+    )
     p_update.add_argument("path", nargs="?", default=".", help=argparse.SUPPRESS)
 
     args = parser.parse_args(argv)
-    root = Path(getattr(args, "path", "."))
+    root = Path(getattr(args, "path", ".")).resolve()
 
     if args.command == "validate":
         problems = validate(root)
@@ -32,16 +62,26 @@ def main(argv=None) -> int:
             for problem in problems:
                 print(f"ERROR: {problem}", file=sys.stderr)
             return 1
-        print(f"OK: {root.resolve()} conforms to tecfu-engineering-records suite")
+        print(f"OK: {root} conforms to tecfu-engineering-records suite")
         return 0
 
     if args.command == "adopt":
-        problems = adopt(root, args.force)
+        problems = adopt(root, force=args.force, standards=args.standards)
         if problems:
             for problem in problems:
                 print(f"ERROR: {problem}", file=sys.stderr)
             return 1
         print(f"Created {root / '.engineering-records.yml'}")
+        print("Next: ter install-standards . && ter validate .")
+        return 0
+
+    if args.command == "install-standards":
+        problems = install_standards(root, force=args.force)
+        if problems:
+            for problem in problems:
+                print(f"ERROR: {problem}", file=sys.stderr)
+            return 1
+        print(f"Installed format standards under {root / 'docs'}")
         return 0
 
     if args.command == "check-update":
