@@ -18,7 +18,7 @@ agents additionally load the matching SKILLS file.
 
 ## Install
 
-Package version tracks the suite version (**1.5.0** ↔ suite **1.5**). Requires Python 3.10+.
+Package version tracks the suite version (**1.6.0** ↔ suite **1.5**). Requires Python 3.10+.
 
 ```bash
 # From this repository (until published to PyPI)
@@ -132,8 +132,7 @@ document.
 ### Install the validator
 
 The recommended way to use the suite is the distributable `ter` CLI (Python
-3.10+). Package version tracks the suite version (currently **1.5.0** ↔
-suite **1.5**).
+3.10+). Package version tracks the suite version (currently **1.6.0** ↔ suite **1.5**).
 
 ```bash
 pipx install tecfu-engineering-records
@@ -187,21 +186,11 @@ Replace an existing manifest with `ter adopt . --force`. Overwrite stale
 standard copies with `ter install-standards . --force` after reviewing the
 diff.
 
-### Enforce on every push (git hook)
+### Enforce with git hooks
 
-```bash
-ter hooks install          # writes .git/hooks/pre-push — no git config changes
-ter hooks uninstall        # remove it again
-```
+Gate commits and pushes on `ter validate` via pre-commit and/or
+`ter hooks install`. See [Git hooks](#git-hooks).
 
-The hook runs the ter validation before every push (success is silent,
-failures go to stderr) and blocks the push on failures. The shim prefers the
-installed `ter` package and falls back to a suite vendored at
-`scripts/ter/validate.py`, so both consumption modes gate without
-per-machine configuration. Hooks are client-side: bypass one push with
-`git push --no-verify` and keep CI validation as the backstop. If you
-already use pre-commit, the [pre-commit hook](#git-hooks) is the
-equivalent alternative.
 
 ### Keep the validator current
 
@@ -239,24 +228,37 @@ file.
 
 ## Git hooks
 
-`ter validate` is safe to run non-interactively (exit `0` / `1`, no prompts).
-Use `--quiet` in hooks so success is silent and failures still print to stderr.
+`ter validate` is non-interactive (exit `0` / `1`). Use `--quiet` so success
+is silent and failures still print to stderr. The CLI walks parents for
+`.engineering-records.yml`, so hooks work from subdirectories.
 
-### pre-commit (recommended)
+Hooks must not mutate the tree: do **not** run `ter adopt` or
+`ter install-standards` inside a hook.
 
-This repository publishes a [pre-commit](https://pre-commit.com) hook. In an
-**adopting** project:
+### Option A — `ter hooks install` (pre-push, no extra tools)
+
+```bash
+ter hooks install          # writes .git/hooks/pre-push — no git config changes
+ter hooks uninstall        # remove the ter-managed shim only
+```
+
+- Runs before every **push**; blocks the push on validation failure.
+- Prefer the installed `ter` package; falls back to a suite vendored at
+  `scripts/ter/validate.py` when present.
+- Idempotent; refuses to overwrite a non-ter pre-push hook unless you pass
+  `--force`.
+- Bypass one push with `git push --no-verify`. Keep CI as the backstop.
+
+### Option B — pre-commit (path-filtered, on commit)
 
 ```yaml
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/tecfu/tecfu-engineering-records
-    rev: v1.5.0   # pin a release tag
+    rev: v1.6.0   # pin a release tag
     hooks:
       - id: ter-validate
 ```
-
-Install and enable:
 
 ```bash
 pipx install pre-commit   # once
@@ -264,43 +266,43 @@ pre-commit install
 pre-commit run ter-validate --all-files
 ```
 
-The hook runs `ter validate --quiet` and only when staged paths touch
+Runs `ter validate --quiet` when staged paths touch
 `.engineering-records.yml` or `docs/specs|decisions|verification|postmortems/`.
-Skip one commit with `SKIP=ter-validate git commit` (pre-commit convention)
-or `git commit --no-verify` when you must.
+Skip one commit with `SKIP=ter-validate git commit`, or
+`git commit --no-verify` when you must.
 
 Until the package is on PyPI, pre-commit installs the hook environment from
 this Git repo at the pinned `rev`.
 
-### Raw git hooks
-
-If you do not use pre-commit, `ter hooks install` writes an equivalent
-pre-push shim automatically (with a vendored-suite fallback) — see
-[Enforce on every push](#enforce-on-every-push-git-hook). A hand-rolled
-hook:
+### Hand-rolled hook
 
 ```bash
 #!/bin/sh
-# .git/hooks/pre-commit  (chmod +x)
+# .git/hooks/pre-commit  (chmod +x) — or pre-push
 ter validate --quiet || exit 1
 ```
 
-`ter` resolves the adoption root by walking parents for
-`.engineering-records.yml`, so the hook works even when git’s cwd is a
-subdirectory.
+Prefer Option A or B unless you need a custom layout.
 
 ### What the hook checks
 
-`ter validate` checks the adoption contract: manifest, declared format
-standard copies and versions, and required docs areas/indexes. For full
-document-graph checks (numbering, headings, pairing, links), also run in CI:
+`ter validate` checks the **adoption contract**: manifest, declared format
+standard copies and versions, and required docs areas/indexes.
+
+For full **document-graph** checks (numbering, headings, pairing, links), run
+in CI (or pre-push if you accept the cost):
 
 ```bash
 python3 /path/to/tecfu-engineering-records/validate.py --project .
 ```
 
-Do **not** run `ter adopt` or `ter install-standards` inside a hook — hooks
-should not mutate the tree.
+Nested suite checkouts (directories that contain `SUITE.md`, e.g. a vendored
+`scripts/ter/`) are skipped by project-mode validation so template sources
+and suite test fixtures are not treated as adopter content.
+
+You can combine both options: pre-commit on day-to-day commits, and
+`ter hooks install` to gate pushes.
+
 
 ## Tooling
 
