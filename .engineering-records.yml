@@ -1,0 +1,5 @@
+spec:
+  name: tecfu-engineering-records
+  version: "1.5"
+  source: https://github.com/tecfu/tecfu-engineering-records
+  channel: stable

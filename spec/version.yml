@@ -1,0 +1,9 @@
+name: tecfu-engineering-records
+version: "1.5"
+released: "2026-09-05"
+channel: stable
+minimum_supported_version: "1.5"
+source: https://github.com/tecfu/tecfu-engineering-records
+
+# This file is the machine-readable compatibility contract for adopters.
+# Update it in the same change that updates SUITE.md.
