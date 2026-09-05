@@ -3,13 +3,61 @@
   "suite_version": "1.5",
   "minimum_supported_suite": "1.5",
   "standards": {
-    "functional-specs": {"version": "1.6", "source": "functional-specs/FUNCTIONAL-SPECS-STANDARD.md", "target": "docs/specs/FUNCTIONAL-SPECS-STANDARD.md"},
-    "decision-records": {"version": "1.9", "source": "decision-records/DECISION-RECORDS-STANDARD.md", "target": "docs/decisions/DECISION-RECORDS-STANDARD.md"},
-    "verification": {"version": "1.2", "source": "verification/VERIFICATION-STANDARD.md", "target": "docs/verification/VERIFICATION-STANDARD.md"},
-    "postmortems": {"version": "1.2", "source": "postmortems/POSTMORTEMS-STANDARD.md", "target": "docs/postmortems/POSTMORTEMS-STANDARD.md"},
-    "agent-instructions": {"version": "1.2", "source": "agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md", "target": "docs/AGENT-INSTRUCTIONS-STANDARD.md"},
-    "changelogs": {"version": "1.1", "source": "changelogs/CHANGELOGS-STANDARD.md", "target": "docs/CHANGELOGS-STANDARD.md"},
-    "design-docs": {"version": "1.4", "source": "design-docs/DESIGN-DOCS-STANDARD.md", "target": "docs/design/DESIGN-DOCS-STANDARD.md"},
-    "backlogs": {"version": "1.1", "source": "backlogs/BACKLOGS-STANDARD.md", "target": "docs/backlog/BACKLOGS-STANDARD.md"}
+    "functional-specs": {
+      "kind": "format",
+      "version": "1.6",
+      "source": "functional-specs/FUNCTIONAL-SPECS-STANDARD.md",
+      "target": "docs/specs/FUNCTIONAL-SPECS-STANDARD.md",
+      "skills_source": "functional-specs/FUNCTIONAL-SPECS-SKILLS.md",
+      "docs_area": "docs/specs"
+    },
+    "decision-records": {
+      "kind": "format",
+      "version": "1.9",
+      "source": "decision-records/DECISION-RECORDS-STANDARD.md",
+      "target": "docs/decisions/DECISION-RECORDS-STANDARD.md",
+      "skills_source": "decision-records/DECISION-RECORDS-SKILLS.md",
+      "docs_area": "docs/decisions"
+    },
+    "verification": {
+      "kind": "format",
+      "version": "1.2",
+      "source": "verification/VERIFICATION-STANDARD.md",
+      "target": "docs/verification/VERIFICATION-STANDARD.md",
+      "skills_source": "verification/VERIFICATION-SKILLS.md",
+      "docs_area": "docs/verification"
+    },
+    "postmortems": {
+      "kind": "format",
+      "version": "1.2",
+      "source": "postmortems/POSTMORTEMS-STANDARD.md",
+      "target": "docs/postmortems/POSTMORTEMS-STANDARD.md",
+      "skills_source": "postmortems/POSTMORTEMS-SKILLS.md",
+      "docs_area": "docs/postmortems"
+    },
+    "agent-instructions": {
+      "kind": "adoption",
+      "version": "1.2",
+      "source": "agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md",
+      "note": "Follow in place; deliverable is project AGENTS.md — do not copy the STANDARD file"
+    },
+    "changelogs": {
+      "kind": "adoption",
+      "version": "1.1",
+      "source": "changelogs/CHANGELOGS-STANDARD.md",
+      "note": "Follow in place; deliverable is project CHANGELOG.md — do not copy the STANDARD file"
+    },
+    "design-docs": {
+      "kind": "adoption",
+      "version": "1.4",
+      "source": "design-docs/DESIGN-DOCS-STANDARD.md",
+      "note": "Follow in place; design docs live in docs/design/ — do not copy the STANDARD file"
+    },
+    "backlogs": {
+      "kind": "adoption",
+      "version": "1.1",
+      "source": "backlogs/BACKLOGS-STANDARD.md",
+      "note": "Follow in place; backlog lives in the project tracker — do not copy the STANDARD file"
+    }
   }
 }

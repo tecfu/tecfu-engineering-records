@@ -1,5 +1,9 @@
+# Canonical suite repository — not an adopting project.
+# Adopters run `ter adopt` in *their* repos; this file only records the
+# suite identity for tooling that inspects the upstream checkout.
 spec:
   name: tecfu-engineering-records
   version: "1.5"
-  source: https://github.com/tecfu/tecfu-engineering-records
   channel: stable
+# No standards: list — this repo *defines* the standards, it does not adopt them.
+standards: []

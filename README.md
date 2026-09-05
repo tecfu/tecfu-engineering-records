@@ -103,118 +103,94 @@ document.
 
 ### Install the validator
 
-The recommended way to use the suite is to install the distributable `ter`
-command-line tool. It is a normal Python package and requires Python 3.10 or
-newer.
-
-For an isolated global installation, use `pipx`:
+The recommended way to use the suite is the distributable `ter` CLI (Python
+3.10+). Package version tracks the suite version (currently **1.5.0** ↔
+suite **1.5**).
 
 ```bash
 pipx install tecfu-engineering-records
-```
-
-Or install it into an existing Python environment with pip:
-
-```bash
-python3 -m pip install tecfu-engineering-records
-```
-
-Verify the installation:
-
-```bash
+# or: python3 -m pip install tecfu-engineering-records
 ter --version
 ter --help
 ```
 
+> Until the package is published to PyPI, install from this repository:
+> `python3 -m pip install "git+https://github.com/tecfu/tecfu-engineering-records.git"`.
+
 ### Adopt the suite
 
-From the root of the project you want to bring under the standard:
-
 ```bash
+# 1. Create the adoption manifest (declares format standards by default)
 ter adopt .
-```
 
-This creates `.engineering-records.yml`, which records the suite version and
-the standards the project has adopted. The validator treats that manifest as
-the project's adoption contract.
+# Partial adoption — only the standards you need:
+ter adopt . --standard decision-records --standard functional-specs
 
-Then validate the project:
+# 2. Copy the declared format STANDARD (+ SKILLS) files from the package
+ter install-standards .
 
-```bash
+# 3. Validate the contract
 ter validate .
 ```
 
-Validation fails if the adoption manifest is missing or inconsistent, a
-standard is missing or stale, or the declared suite/standard versions are not
-supported by the installed validator.
+`.engineering-records.yml` is the **authoritative adoption contract**. It
+records the suite version and which standards the project has declared.
 
-`ter adopt` can be run against another project directory as well:
+- **Format standards** (`functional-specs`, `decision-records`,
+  `verification`, `postmortems`) are **copied** into `docs/.../` when
+  declared. `ter install-standards` does this from the packaged files.
+- **Adoption standards** (`agent-instructions`, `changelogs`, `design-docs`,
+  `backlogs`) are **followed in place** — do **not** copy their STANDARD
+  files. They produce `AGENTS.md`, `CHANGELOG.md`, `docs/design/`, and
+  tracker stories respectively.
+
+`ter validate` checks the manifest, that each declared format standard is
+present and at the expected version, and that the corresponding `docs/` area
+and index exist. For full document-graph checks (numbering, heading order,
+spec↔verification pairing, link integrity, matrix arithmetic), also run the
+suite's richer validator against the project:
 
 ```bash
-ter adopt /path/to/project
-ter validate /path/to/project
+python3 /path/to/tecfu-engineering-records/validate.py --project .
+python3 /path/to/tecfu-engineering-records/validate_matrix.py   # optional
 ```
 
-If you intentionally need to replace an existing adoption manifest, use:
-
-```bash
-ter adopt . --force
-```
+Replace an existing manifest with `ter adopt . --force`. Overwrite stale
+standard copies with `ter install-standards . --force` after reviewing the
+diff.
 
 ### Keep the validator current
 
-Check the compatibility information exposed by the installed distribution:
-
 ```bash
 ter check-update
+# prints: suite=<version>  and  minimum-supported=<floor>
 ```
 
-The installed validator is versioned independently from the standards it
-validates. Projects can remain on an older supported suite version rather
-than being forced to upgrade immediately; when a suite version reaches its
-support floor, upgrade the project and migrate its adopted standards as
-needed.
+When the suite advances, bump `spec.version` in `.engineering-records.yml`,
+run any migration under `migrations/`, then `ter install-standards . --force`
+and `ter validate .`.
 
-For CI, install the same distributable and run the validator as a required
-check:
+CI example:
 
 ```yaml
 - name: Install TecFu Engineering Records validator
   run: python3 -m pip install tecfu-engineering-records
-
 - name: Validate engineering records
   run: ter validate .
 ```
 
-The canonical repository's own CI additionally runs the validator's
-self-tests and the full suite validator. The `validate` job is intentionally
-kept as the stable status-check name so repositories can require it through
-GitHub branch protection or rulesets.
+### Standards files (summary)
 
-### Standards files
-
-**Format standards** are adopted by copying the directory's
-`<NAME>-STANDARD.md` into the project — `docs/decisions/DECISION-RECORDS-STANDARD.md`,
-`docs/specs/FUNCTIONAL-SPECS-STANDARD.md`, `docs/verification/VERIFICATION-STANDARD.md`,
-`docs/postmortems/POSTMORTEMS-STANDARD.md` — noting the adopted version in
-the project's adoption manifest, and re-copying when you upgrade.
-
-Keep each area's index current — the spec and record indexes double as the
-capability and structure maps above — and copy the matching
-`<NAME>-SKILLS.md` files into the project's agent skills directory so coding
-agents apply the standards unprompted.
-
-**Adoption standards** are not copied — projects follow them where they
-stand: `CHANGELOG.md` per Keep a Changelog + SemVer, design docs in
-`docs/design/`, the backlog in the project's tracker. The exception is
-[agent-instructions](agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md): following it *produces*
-the project's `AGENTS.md` — the routing table that tells every agent which
-standard applies to which work.
+| Kind | Standards | In the project |
+|------|-----------|----------------|
+| format | functional-specs, decision-records, verification, postmortems | Copy `*-STANDARD.md` (+ skills) under `docs/.../` |
+| adoption | agent-instructions, changelogs, design-docs, backlogs | Follow in place; do not copy the STANDARD file |
 
 Undecided work lives beside the indexes until promoted:
 `docs/ANALYSIS-<TOPIC>.md` (decision records), `docs/PROPOSAL-<TOPIC>.md`
-(functional specs). Lifecycle, format, template, and promotion mechanics are
-defined only in each standard's own file.
+(functional specs). Lifecycle and templates live only in each standard's own
+file.
+
 
 ## Tooling
 
@@ -222,7 +198,7 @@ The suite validates itself.
 
 - **`SUITE.md`** — the version manifest: one row per standard. `validate.py`
   fails when the table and the standard files disagree.
-- **`ter`** — the distributable validator CLI. Install it with pip/pipx and
+- **`ter`** — the distributable adoption CLI (`validate`, `adopt`, `install-standards`, `check-update`). Install with pip/pipx and
   use `ter adopt`, `ter validate`, and `ter check-update` in adopting
   repositories.
 - **`validate.py`** — the canonical repository validator (stdlib only).
