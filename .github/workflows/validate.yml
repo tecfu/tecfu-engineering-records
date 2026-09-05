@@ -14,5 +14,7 @@ jobs:
         run: python3 validate.py --self-test
       - name: Validate suite
         run: python3 validate.py
+      - name: Validate decision matrix weights
+        run: python3 validate_matrix.py
       - name: Fixture tests
         run: python3 tests/test_fixtures.py
