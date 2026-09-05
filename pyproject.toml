@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tecfu-engineering-records"
+version = "1.0.0"
+description = "Executable validator and updater for the TecFu Engineering Records standard"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "TecFu" }]
+dependencies = []
+
+[project.scripts]
+ter = "ter.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ter = ["suite.json"]
