@@ -421,6 +421,14 @@ def check_suite(root):
 
 # ---------- project mode ----------
 
+def nested_suite_dirs(root: Path) -> set[Path]:
+    """Directories of nested suite checkouts (dirs carrying SUITE.md, e.g. a
+    suite vendored at scripts/ter/). Their standards are template sources,
+    not adoption copies, and their docs — including deliberately broken test
+    fixtures — are not the project's document graph."""
+    return {p.parent for p in root.rglob("SUITE.md")}
+
+
 def check_project(root):
     problems = []
     suite = Path(__file__).resolve().parent
@@ -478,11 +486,15 @@ def check_project(root):
                 if name not in idx_text:
                     problems.append(f"{idx}: no index row for {name}")
 
+    suite_dirs = nested_suite_dirs(root)
+
     # document graph: every relative Markdown link in the project resolves
     # (spec/report References, design-doc Promoted to:, index rows, …).
     # Adopted copies are skipped — the suite validates them against itself.
     seen = set()
     for md in sorted(root.rglob("*.md")):
+        if suite_dirs & set(md.parents):
+            continue
         if COPIED_RE.match(md.name):
             continue
         rel = md.relative_to(root)
@@ -493,6 +505,8 @@ def check_project(root):
 
     copies = {}
     for pth in sorted(root.rglob("*-STANDARD.md")):
+        if suite_dirs & set(pth.parents):
+            continue  # nested suite checkout: template source, not an adoption copy
         m = VER_RE.search(pth.read_text())
         copies[str(pth.relative_to(root))] = m.group(1) if m else None
     if copies:

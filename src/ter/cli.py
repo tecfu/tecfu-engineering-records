@@ -9,7 +9,9 @@ from .validator import (
     adopt,
     check_update,
     find_project_root,
+    install_hooks,
     install_standards,
+    uninstall_hooks,
     validate,
 )
 
@@ -74,6 +76,19 @@ def main(argv=None) -> int:
     )
     p_update.add_argument("path", nargs="?", default=".", help=argparse.SUPPRESS)
 
+    p_hooks = sub.add_parser(
+        "hooks",
+        help="install or remove the pre-push validation git hook",
+    )
+    hsub = p_hooks.add_subparsers(dest="hooks_command", required=True)
+    for hname, hhelp in (("install", "write .git/hooks/pre-push (no git config changes)"),
+                         ("uninstall", "remove a ter-managed pre-push shim")):
+        hp = hsub.add_parser(hname, help=hhelp)
+        hp.add_argument("path", nargs="?", default=".")
+        if hname == "install":
+            hp.add_argument("--force", action="store_true",
+                            help="replace an existing non-ter pre-push hook")
+
     args = parser.parse_args(argv)
     raw_path = Path(getattr(args, "path", ".")).resolve()
 
@@ -108,6 +123,21 @@ def main(argv=None) -> int:
                 print(f"ERROR: {problem}", file=sys.stderr)
             return 1
         print(f"Installed format standards under {root / 'docs'}")
+        return 0
+
+    if args.command == "hooks":
+        root = _resolve_root(args.path)
+        problems = (install_hooks(root, force=args.force) if args.hooks_command == "install"
+                    else uninstall_hooks(root))
+        if problems:
+            for problem in problems:
+                print(f"ERROR: {problem}", file=sys.stderr)
+            return 1
+        if args.hooks_command == "install":
+            print("Installed .git/hooks/pre-push — runs the ter validation before "
+                  "every push. Bypass one push with: git push --no-verify")
+        else:
+            print("Removed the ter-managed pre-push hook.")
         return 0
 
     if args.command == "check-update":

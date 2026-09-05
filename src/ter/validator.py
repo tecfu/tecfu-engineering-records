@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import subprocess
 from pathlib import Path
 from importlib.resources import files
 
@@ -265,3 +266,68 @@ def update(root: Path, force: bool = False) -> list[str]:
 def check_update() -> tuple[str, str]:
     meta = suite_metadata()
     return meta["suite_version"], meta["minimum_supported_suite"]
+
+
+# ---------- git hooks ----------
+
+_HOOK_MARKER = "ter-managed git hook (tecfu-engineering-records)"
+_HOOK_SHIM = f"""#!/bin/sh
+# {_HOOK_MARKER} — installed by `ter hooks install`.
+# Remove with `ter hooks uninstall`, or delete this file.
+# Bypass a single push with: git push --no-verify
+root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 1
+cat >/dev/null 2>&1  # drain pre-push ref lines
+if command -v ter >/dev/null 2>&1; then
+  exec ter validate --quiet "$root"
+fi
+if [ -f "$root/scripts/ter/validate.py" ]; then
+  exec python3 "$root/scripts/ter/validate.py" --project "$root"
+fi
+echo "ter: no validator found — pip install tecfu-engineering-records or vendor the suite at scripts/ter/ (bypass: git push --no-verify)" >&2
+exit 1
+"""
+
+
+def _pre_push_hook(root: Path) -> Path:
+    """Path of the pre-push hook in the default git hooks dir (no core.hooksPath)."""
+    out = subprocess.run(
+        ["git", "rev-parse", "--git-path", "hooks"],
+        cwd=root, capture_output=True, text=True,
+    )
+    if out.returncode != 0:
+        raise RuntimeError(f"{root}: not a git repository")
+    return (root / out.stdout.strip()).resolve() / "pre-push"
+
+
+def install_hooks(root: Path, force: bool = False) -> list[str]:
+    """Write the pre-push shim into the repo's default hooks dir.
+
+    The shim prefers the installed `ter` package and falls back to a suite
+    vendored at scripts/ter/validate.py, so both consumption modes gate
+    without per-machine git config.
+    """
+    try:
+        hook = _pre_push_hook(root.resolve())
+    except RuntimeError as e:
+        return [str(e)]
+    if hook.exists() and _HOOK_MARKER not in hook.read_text(encoding="utf-8") and not force:
+        return [f"{hook}: existing pre-push hook is not ter-managed; "
+                "refusing to overwrite (use --force to replace it)"]
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    hook.write_text(_HOOK_SHIM, encoding="utf-8")
+    hook.chmod(0o755)
+    return []
+
+
+def uninstall_hooks(root: Path) -> list[str]:
+    """Remove the ter-managed pre-push shim; never touches foreign hooks."""
+    try:
+        hook = _pre_push_hook(root.resolve())
+    except RuntimeError as e:
+        return [str(e)]
+    if not hook.exists():
+        return [f"{hook}: no pre-push hook installed"]
+    if _HOOK_MARKER not in hook.read_text(encoding="utf-8"):
+        return [f"{hook}: not ter-managed; refusing to remove"]
+    hook.unlink()
+    return []
