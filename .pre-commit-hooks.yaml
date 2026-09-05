@@ -1,0 +1,17 @@
+# Official pre-commit hooks for tecfu-engineering-records.
+# Adopters pin this repo + rev in .pre-commit-config.yaml — see README.
+- id: ter-validate
+  name: ter validate
+  description: >
+    Validate the TecFu engineering-records adoption contract
+    (.engineering-records.yml, declared format standards, docs areas).
+  entry: ter validate --quiet
+  language: python
+  language_version: python3
+  pass_filenames: false
+  always_run: false
+  files: >-
+    (?x)^(
+      \.engineering-records\.yml|
+      docs/(specs|decisions|verification|postmortems)/.*
+    )$

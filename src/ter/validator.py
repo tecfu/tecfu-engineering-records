@@ -17,6 +17,21 @@ from pathlib import Path
 from importlib.resources import files
 
 _MANIFEST = ".engineering-records.yml"
+
+def find_project_root(start: Path | None = None) -> Path | None:
+    """Walk parents from *start* looking for .engineering-records.yml.
+
+    Returns the directory that contains the adoption manifest, or None if
+    none is found before the filesystem root. Prefer this over cwd when
+    invoked from a subdirectory (e.g. git hooks, nested shells).
+    """
+    cur = (start or Path.cwd()).resolve()
+    if cur.is_file():
+        cur = cur.parent
+    for candidate in (cur, *cur.parents):
+        if (candidate / _MANIFEST).is_file():
+            return candidate
+    return None
 _VERSION_RE = re.compile(r"\*\*Version:\*\*\s+(\d+\.\d+)\s+\(")
 _STANDARD_LINE = re.compile(r"^\s*-\s+([a-z0-9-]+)\s*$")
 
@@ -78,13 +93,20 @@ def _packaged_standard(relative: str) -> Path:
 def validate(root: Path) -> list[str]:
     """Validate an adopting project. Partial adoption is allowed: only
     declared format standards are required to be present and current.
+
+    If *root* has no `.engineering-records.yml`, walks parents via
+    `find_project_root` so hooks and subdir invocations still work.
     """
     root = root.resolve()
     meta = suite_metadata()
     problems: list[str] = []
     manifest_path = root / _MANIFEST
     if not manifest_path.is_file():
-        return [f"missing {_MANIFEST}; run 'ter adopt' to create it"]
+        found = find_project_root(root)
+        if found is None:
+            return [f"missing {_MANIFEST}; run 'ter adopt' to create it"]
+        root = found
+        manifest_path = root / _MANIFEST
 
     manifest = _manifest(manifest_path)
     spec = manifest["spec"]
