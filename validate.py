@@ -211,6 +211,105 @@ def check_spec_ref(text, base, root):
     return problems
 
 
+def _section(text, heading):
+    """Lines after a '## <heading>' up to the next '## ' (or EOF)."""
+    out, on = [], False
+    for line in text.splitlines():
+        if re.match(rf"^## {re.escape(heading)}\s*$", line):
+            on = True
+            continue
+        if on and line.startswith("## "):
+            break
+        if on:
+            out.append(line)
+    return "\n".join(out)
+
+
+MATRIX_WEIGHT_RE = re.compile(r"\((\d+)")
+CLOSENESS_RE = re.compile(r"(?im)^\s*\*{0,2}Closeness\*{0,2}:.*?by\s+(\d+)\s+points")
+
+
+def check_decision_matrix(text):
+    """Decision matrix arithmetic + the required Closeness line (§5).
+
+    Weights 1–10, scores 0–5, per-criterion Basis, and the Closeness
+    margin must equal the actual top-two gap in weighted points.
+    """
+    body = _section(text, "Decision matrix").strip()
+    if body in ("", "None."):
+        return []
+    rows = [ln for ln in body.splitlines() if ln.strip().startswith("|")]
+    if len(rows) < 2:
+        return ["Decision matrix section has no table"]
+    header = [c.strip() for c in rows[0].strip("|").split("|")]
+    if len(header) < 4 or header[-1].lower() != "basis" or "criterion" not in header[0].lower():
+        return [f"matrix header must be '| Criterion (weight) | … | Basis |': {rows[0]}"]
+    opts = header[1:-1]
+    totals = [0] * len(opts)
+    problems = []
+    for row in rows[1:]:
+        cells = [c.strip() for c in row.strip("|").split("|")]
+        if set(cells[0]) <= set("-| "):
+            continue  # separator row
+        if len(cells) != len(header):
+            problems.append(f"matrix row has {len(cells)} cells, want {len(header)}: {row}")
+            continue
+        crit = cells[0]
+        w = MATRIX_WEIGHT_RE.search(crit)
+        if not w or not 1 <= int(w.group(1)) <= 10:
+            problems.append(f"matrix criterion '{crit}': weight missing or not 1-10")
+            continue
+        for i, cell in enumerate(cells[1:-1]):
+            if not re.fullmatch(r"\d", cell) or int(cell) > 5:
+                problems.append(f"matrix criterion '{crit}', option '{opts[i]}': score '{cell}' not 0-5")
+                continue
+            totals[i] += int(cell) * int(w.group(1))
+        if not cells[-1]:
+            problems.append(f"matrix criterion '{crit}': empty Basis")
+    if problems:
+        return problems
+    ordered = sorted(zip(totals, opts), reverse=True)
+    margin = ordered[0][0] - ordered[1][0]
+    m = CLOSENESS_RE.search(body)
+    if not m:
+        if re.search(r"(?im)^\s*\*{0,2}Closeness\*{0,2}:", body):
+            return problems + ["Closeness line lacks a 'by N points' margin"]
+        return problems + ["no Closeness line after the Decision matrix"]
+    if int(m.group(1)) != margin:
+        problems.append(
+            f"Closeness says {m.group(1)} points but matrix totals differ by {margin} "
+            f"({ordered[0][1]} {ordered[0][0]} vs {ordered[1][1]} {ordered[1][0]})"
+        )
+    return problems
+
+
+def check_acceptance_criteria(text):
+    """Basic AC structure (§5): AC-N.M ids, unique, under their FR-N group."""
+    body = _section(text, "Acceptance criteria")
+    if not body.strip() or body.strip() == "None.":
+        return []
+    problems, seen, cur_fr, count = [], set(), None, 0
+    for line in body.splitlines():
+        m = re.match(r"\s*-\s*\*\*FR-(\d+):\*\*", line)
+        if m:
+            cur_fr = int(m.group(1))
+            continue
+        for m in re.finditer(r"AC-(\d+)\.(\d+)", line):
+            n, k = int(m.group(1)), int(m.group(2))
+            aid = f"AC-{n}.{k}"
+            count += 1
+            if aid in seen:
+                problems.append(f"duplicate AC id {aid}")
+            seen.add(aid)
+            if cur_fr is None:
+                problems.append(f"{aid} appears outside an FR group")
+            elif n != cur_fr:
+                problems.append(f"{aid} is not under FR-{n} (current group FR-{cur_fr})")
+    if not count:
+        problems.append("Acceptance criteria section has no AC-N.M items")
+    return problems
+
+
 def check_adoption(rows, copies, current):
     """Adoption manifest rows vs copied standard files vs suite versions.
 
@@ -359,6 +458,14 @@ def check_project(root):
             problems += [f"{area}/{name}: {x}" for x in check_placeholders(text)]
             if area in ("docs/specs", "docs/decisions"):
                 problems += [f"{area}/{name}: {x}" for x in check_supersedes(text, nums)]
+            if area == "docs/decisions":
+                problems += [
+                    f"{area}/{name}: {x}" for x in check_decision_matrix(text)
+                ]
+            if area == "docs/specs":
+                problems += [
+                    f"{area}/{name}: {x}" for x in check_acceptance_criteria(text)
+                ]
             if area == "docs/verification":
                 problems += [f"{area}/{name}: {x}" for x in check_spec_ref(text, p, root)]
 
@@ -522,7 +629,53 @@ def self_test():
         assert check_spec_ref("**Spec:** {link to the spec}", v, d) == []
         assert any("no '**Spec:**'" in p for p in check_spec_ref("x", v, d))
 
-    print("self-test OK (33 assertions)")
+    # decision matrix arithmetic + closeness line
+    good = (
+        "## Decision matrix\n\n"
+        "| Criterion (weight) | A | B | Basis |\n|---|---|---|---|\n"
+        "| cost (5) | 4 | 2 | benchmark |\n| ops (3) | 3 | 4 | judgment — x |\n\n"
+        "Closeness: A leads B by 7 points. Flips on ops.\n"
+    )
+    assert check_decision_matrix(good) == []  # A 29 vs B 22 -> margin 7
+    assert any(
+        "differ by 7" in p
+        for p in check_decision_matrix(good.replace("by 7 points", "by 9 points"))
+    )
+    assert any(
+        "no Closeness line" in p for p in check_decision_matrix(good.split("Closeness")[0])
+    )
+    assert any(
+        "weight missing" in p
+        for p in check_decision_matrix(good.replace("cost (5)", "cost"))
+    )
+    assert any(
+        "not 0-5" in p for p in check_decision_matrix(good.replace("| 4 |", "| 6 |"))
+    )
+    assert check_decision_matrix("## Decision matrix\n\nNone.\n") == []
+    assert check_decision_matrix("## Other\n") == []
+
+    # acceptance criteria structure
+    ac_good = (
+        "## Acceptance criteria\n\n- **FR-1:**\n"
+        "  - AC-1.1 — Given x, when y, then z.\n"
+        "  - AC-1.2 — Given a, when b, then c.\n"
+        "- **FR-2:**\n  - AC-2.1 — Given p, when q, then r.\n"
+    )
+    assert check_acceptance_criteria(ac_good) == []
+    assert any(
+        "duplicate AC id" in p
+        for p in check_acceptance_criteria(ac_good + "  - AC-1.1 — dup.\n")
+    )
+    assert any(
+        "not under FR-1" in p
+        for p in check_acceptance_criteria(ac_good.replace("AC-2.1", "AC-1.3"))
+    )
+    assert any(
+        "no AC-N.M" in p for p in check_acceptance_criteria("## Acceptance criteria\n\ntodo\n")
+    )
+    assert check_acceptance_criteria("## Acceptance criteria\n\nNone.\n") == []
+
+    print("self-test OK (45 assertions)")
     return 0
 
 

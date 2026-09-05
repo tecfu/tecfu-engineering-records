@@ -138,8 +138,11 @@ The suite validates itself.
   standards and the current suite (staleness), and the document graph —
   every relative Markdown link resolves, and supersedes / `Reconsiders:` /
   `superseded by` / `Spec:` / index-row edges point at documents that
-  exist. Fixture-based integration tests (`tests/test_fixtures.py`) run
-  the real validator against deliberately-broken project fixtures in
-  `tests/fixtures/`.
+  exist. Content sanity: decision-matrix arithmetic (weights 1-10, scores
+  0-5, per-criterion Basis) with the Closeness margin recomputed from the
+  matrix totals, and acceptance-criteria structure (`AC-N.M` ids, unique,
+  under their `FR-N` group). Fixture-based integration tests
+  (`tests/test_fixtures.py`) run the real validator against
+  deliberately-broken project fixtures in `tests/fixtures/`.
 
 - **`.github/workflows/validate.yml`** — runs all three on every push and PR.

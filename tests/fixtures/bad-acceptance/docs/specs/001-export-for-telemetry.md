@@ -25,7 +25,7 @@ Fleet operators export a day of telemetry for offline analysis.
 
 - **FR-1:**
   - AC-1.1 — Exporting a range of 10 batches produces a CSV with 10 rows.
-  - AC-1.2 — Exporting a range of 0 batches produces an empty CSV.
+  - AC-1.1 — Exporting a range of 0 batches produces an empty CSV.
 
 ## Open questions & unknowns
 

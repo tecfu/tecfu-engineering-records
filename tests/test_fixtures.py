@@ -45,6 +45,9 @@ CASES = {
         ],
     ),
     "stale-index": (1, ["no index row for 001-export-for-telemetry.md"]),
+    "bad-matrix": (1, ["Closeness says 9 points but matrix totals differ by 7"]),
+    "missing-closeness": (1, ["no Closeness line after the Decision matrix"]),
+    "bad-acceptance": (1, ["duplicate AC id AC-1.1"]),
 }
 
 
