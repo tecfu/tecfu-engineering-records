@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from pathlib import Path
 from importlib.resources import files
 
 _MANIFEST = ".engineering-records.yml"
 _VERSION_RE = re.compile(r"\*\*Version:\*\*\s+(\d+\.\d+)\s+\(")
-_VERSION_LINE = re.compile(r"^\s*version:\s*[\"']?([^\"'\s]+)")
 _STANDARD_LINE = re.compile(r"^\s*-\s+([a-z0-9-]+)\s*$")
 
 
@@ -16,11 +16,9 @@ def suite_metadata() -> dict:
 
 
 def _manifest(path: Path) -> dict:
-    """Parse the deliberately small, schema-constrained adoption YAML."""
-    text = path.read_text(encoding="utf-8")
     result = {"spec": {}, "standards": []}
     section = None
-    for raw in text.splitlines():
+    for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.split("#", 1)[0].rstrip()
         if not line.strip():
             continue
@@ -51,38 +49,30 @@ def validate(root: Path) -> list[str]:
     manifest_path = root / _MANIFEST
     if not manifest_path.is_file():
         return [f"missing {_MANIFEST}; run 'ter adopt' to create it"]
-
     manifest = _manifest(manifest_path)
-    spec = manifest.get("spec", {})
+    spec = manifest["spec"]
     if spec.get("name") != meta["name"]:
         problems.append(f"{_MANIFEST}: spec.name must be {meta['name']!r}")
-    declared_version = spec.get("version")
-    if declared_version != meta["suite_version"]:
-        problems.append(f"{_MANIFEST}: spec.version is {declared_version!r}; installed suite is {meta['suite_version']}")
+    if spec.get("version") != meta["suite_version"]:
+        problems.append(f"{_MANIFEST}: spec.version is {spec.get('version')!r}; installed suite is {meta['suite_version']}")
     if spec.get("channel", "stable") not in {"stable", "preview"}:
         problems.append(f"{_MANIFEST}: spec.channel must be stable or preview")
-
-    declared = set(manifest.get("standards", []))
+    declared = set(manifest["standards"])
     known = set(meta["standards"])
-    unknown = sorted(declared - known)
-    if unknown:
-        problems.append(f"{_MANIFEST}: unknown standards: {', '.join(unknown)}")
-    missing_declared = sorted(known - declared)
-    if missing_declared:
-        problems.append(f"{_MANIFEST}: missing standard declarations: {', '.join(missing_declared)}")
-
+    for name in sorted(declared - known):
+        problems.append(f"{_MANIFEST}: unknown standard: {name}")
+    for name in sorted(known - declared):
+        problems.append(f"{_MANIFEST}: missing standard declaration: {name}")
     for name, info in meta["standards"].items():
         if name not in declared:
             continue
-        p = root / "docs" / info["path"]
+        p = root / info["target"]
         if not p.is_file():
-            problems.append(f"missing required spec file: {p.relative_to(root)}")
+            problems.append(f"missing required spec file: {info['target']}")
             continue
         actual = _standard_version(p)
         if actual != info["version"]:
-            problems.append(f"{p.relative_to(root)}: version {actual!r}; expected {info['version']}")
-
-    # The adopter must have the canonical content areas and their indexes.
+            problems.append(f"{info['target']}: version {actual!r}; expected {info['version']}")
     for area in ("specs", "decisions", "verification", "postmortems"):
         p = root / "docs" / area
         if not p.is_dir():
@@ -101,6 +91,25 @@ def adopt(root: Path, force: bool = False) -> list[str]:
     lines += [f"  - {name}" for name in meta["standards"]]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return []
+
+
+def update(root: Path, force: bool = False) -> list[str]:
+    meta = suite_metadata()
+    problems: list[str] = []
+    package_root = files("ter").joinpath("standards")
+    for name, info in meta["standards"].items():
+        source = Path(package_root.joinpath(info["source"]))
+        target = root / info["target"]
+        if target.exists() and not force:
+            actual = _standard_version(target)
+            if actual != info["version"]:
+                problems.append(f"{info['target']}: stale copy; use --force only after reviewing changes")
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    if not (root / _MANIFEST).exists():
+        problems.extend(adopt(root))
+    return problems
 
 
 def check_update() -> tuple[str, str]:
