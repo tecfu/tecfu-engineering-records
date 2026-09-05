@@ -1,6 +1,6 @@
 # Design Decision Records — Standard
 
-**Version:** 1.8 (2026-09-05)
+**Version:** 1.9 (2026-09-05)
 
 The single-file definition of how our projects record design decisions: one
 short document per architecturally significant decision, written so a stranger
@@ -26,10 +26,20 @@ changelog (§9).
 
 **Scope:** a record is required for any **architecturally significant**
 decision (Nygard's test): one that affects the system's structure,
-non-functional characteristics, dependencies, interfaces, or construction
-technique — or that is hard/expensive to reverse. Examples: choosing an
-orchestrator, adopting a format/tool, defining a contract boundary, picking a
-data store, changing a deployment model.
+non-functional characteristics / quality attributes, dependencies, interfaces,
+or construction technique — or that is hard/expensive to reverse. Examples:
+choosing an orchestrator, adopting a format/tool, defining a contract
+boundary, picking a data store, changing a deployment model, selecting the
+mechanism that realises an SLO or a security control.
+
+Non-functional characteristics (performance under load, availability,
+security properties, compliance obligations, maintainability, etc.) are
+first-class drivers of architectural decisions. When an NFR is expressed as
+a measurable promise in a functional spec, the *approach* chosen to meet it
+belongs here. Threat-model mitigations, replication topology, caching
+strategy, and audit-log durability mechanisms are typical decision-record
+material; the observable thresholds themselves stay in the companion
+functional-spec standard.
 
 Do **not** write records for: local style choices, single-function refactors,
 anything fully reversible in minutes. When in doubt, write it — an
@@ -146,6 +156,10 @@ should) overrule the table, but must explain why in Trade-offs.
   normalized %. Justify each weight in one clause (why this one matters for
   *this* decision). If weight disagreement is the actual dispute, derive them
   by AHP pairwise comparison (Saaty 1–9 scale) instead of guessing.
+  Quality attributes / NFRs that the decision is intended to satisfy (latency
+  budget, availability target, threat-model residual risk, compliance
+  control) are natural and preferred criteria; name the measurable target
+  when it exists so the scores stay anchored.
 - **Weighted total:** `Σ (score × weight) / (5 × total weight)` → 0–100%.
 - **Basis, per criterion.** Every score cites its basis: a measurement or a
   link, or `judgment — {why}`. Measured beats argued; an unwritten basis is
@@ -298,9 +312,17 @@ The convention this standard is based on, in order of influence:
   (IETF RFCs, Python PEPs, Go proposals).
 - **Premortem** — Gary Klein, "Performing a Premortem" (Harvard
   Business Review, 2007): "if this fails, why?" before commitment.
+- **ISO/IEC 25010:2023** and quality-attribute scenarios — non-functional
+  characteristics as first-class architectural drivers (§1, §5).
+- **AWS Prescriptive Guidance / Richards & Ford** — NFRs (security, high
+  availability, fault tolerance, etc.) as primary inputs to the ADR process.
 
 ## 9. Changelog
 
+- **1.9 (2026-09-05)** — scope (§1) and scoring (§5): explicit treatment of
+  non-functional characteristics / quality attributes as architectural
+  drivers; measurable NFR targets become preferred matrix criteria; the
+  approach that realises a functional-spec NFR belongs in a decision record.
 - **1.8 (2026-09-05)** — file conventions (§2): numbering gaps are errors —
   numbers are contiguous from 001; never renumber, restore the file or let
   the next free number fill the gap.

@@ -78,9 +78,14 @@ THE SYSTEM — defined in one paragraph: the project's AGENTS.md Summary
 Read it as coverage: every behavior change is promised by a spec and proven
 by a report; every significant choice is made in a record; design exploration
 feeds both and keeps nothing durable of its own; failures feed back through
-postmortems; releases land in the changelog. Even non-functional promises —
-latency, uptime, memory — are user-observable behavior: they become spec
-criteria, and the approaches chosen to meet them become records.
+postmortems; releases land in the changelog. Non-functional promises
+(latency, uptime, internal SLOs that surface only under load, compliance
+obligations, security properties) are treated the same way when they can be
+stated as measurable outcomes under defined conditions: they become
+quantified spec criteria (with measurement method and verification path);
+the architectural approaches chosen to meet them become decision records.
+See the writing-rules section of the functional-specs standard and the scope
+section of the decision-records standard.
 
 **Composition lives in the indexes, not in a new document type.** The two
 project index files are the coverage maps:

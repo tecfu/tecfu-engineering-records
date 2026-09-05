@@ -1,6 +1,6 @@
 # Functional Specification — Standard
 
-**Version:** 1.5 (2026-09-05)
+**Version:** 1.6 (2026-09-05)
 
 The single-file definition of how our projects specify user-visible behavior:
 one short document per behavior change, written so the people building it know
@@ -143,6 +143,28 @@ reader who stops after the Summary still knows what is changing.
   cases that matter (empty input, oversized input, concurrent use, failure,
   unauthorized access) or explicitly state a case is unhandled — here or in
   non-goals. Silence is not a disclaimer.
+- **Non-functional and quality attributes.** Even internal or load-only
+  properties (latency under load, availability SLOs, compliance obligations,
+  security properties that surface only under attack) are expressible as
+  requirements when they are observable under defined conditions. Treat them
+  the same way as any other FR:
+  - Quantify the threshold and the conditions (e.g. "p95 end-to-end latency
+    MUST be < 250 ms at 1 000 concurrent users measured by the staging load
+    test suite").
+  - Name the measurement method and the verification path in the acceptance
+    criteria (or point to a verification report that will supply them).
+  - Prefer ISO/IEC 25010 quality characteristics as vocabulary when useful
+    (performance efficiency, reliability, security, maintainability, etc.).
+  - An SLI/SLO pair is a natural form: the SLI specification becomes the
+    observable outcome; the SLO becomes the numeric threshold; the
+    verification report records the SLI implementation and the run evidence.
+  - Purely internal design choices that realise an NFR (caching strategy,
+    replication topology, threat-model mitigations) belong in a decision
+    record, not in the functional requirements text. The observable promise
+    stays here; the architectural approach stays there.
+  Vague quality wishes ("be secure", "scale well", "be compliant") are
+  banned exactly as "fast" or "robust" are banned — turn them into
+  measurable criteria or move them out of the spec.
 
 ## 6. Proposals and promotion
 
@@ -265,9 +287,19 @@ The convention this standard is based on, in order of influence:
 - **Goals / non-goals** — the Google design-doc convention.
 - **Companion: decision records** — `../decision-records/DECISION-RECORDS-STANDARD.md`
   (Nygard 2011; Fowler); the how-and-why half of the same pipeline.
+- **ISO/IEC 25010:2023** (SQuaRE — System and software quality models) —
+  product-quality characteristics used as vocabulary for non-functional /
+  quality-attribute requirements (§5).
+- **Google SRE / Site Reliability Workbook** — SLI specification vs
+  implementation, and SLOs as measurable targets that become acceptance
+  criteria and verification evidence (§5).
 
 ## 9. Changelog
 
+- **1.6 (2026-09-05)** — writing rules (§5): explicit guidance for
+  non-functional and quality attributes (quantified thresholds, measurement
+  method, verification path, ISO 25010 vocabulary, SLI/SLO form); pure
+  design realisations of NFRs stay in decision records.
 - **1.5 (2026-09-05)** — file conventions (§2): numbering gaps are errors —
   numbers are contiguous from 001; never renumber, restore the file or let
   the next free number fill the gap.

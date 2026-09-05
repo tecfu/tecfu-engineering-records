@@ -1,14 +1,14 @@
 # Suite — version manifest
 
-**Suite version:** 1.3 (2026-09-05)
+**Suite version:** 1.4 (2026-09-05)
 
 One row per standard. `validate.py` fails when this table and the standard
 files disagree. Bump the suite version whenever any row changes.
 
 | Standard | Kind | Version | File |
 |---|---|---|---|
-| Decision records (architecture) | format | 1.8 | decision-records/DECISION-RECORDS-STANDARD.md |
-| Functional specification | format | 1.5 | functional-specs/FUNCTIONAL-SPECS-STANDARD.md |
+| Decision records (architecture) | format | 1.9 | decision-records/DECISION-RECORDS-STANDARD.md |
+| Functional specification | format | 1.6 | functional-specs/FUNCTIONAL-SPECS-STANDARD.md |
 | Verification report | format | 1.2 | verification/VERIFICATION-STANDARD.md |
 | Postmortem | format | 1.2 | postmortems/POSTMORTEMS-STANDARD.md |
 | Agent instructions | format | 1.2 | agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md |
