@@ -1,0 +1,15 @@
+{
+  "name": "tecfu-engineering-records",
+  "suite_version": "1.5",
+  "minimum_supported_suite": "1.5",
+  "standards": {
+    "functional-specs": {"version": "1.6", "source": "functional-specs/FUNCTIONAL-SPECS-STANDARD.md", "target": "docs/specs/FUNCTIONAL-SPECS-STANDARD.md"},
+    "decision-records": {"version": "1.9", "source": "decision-records/DECISION-RECORDS-STANDARD.md", "target": "docs/decisions/DECISION-RECORDS-STANDARD.md"},
+    "verification": {"version": "1.2", "source": "verification/VERIFICATION-STANDARD.md", "target": "docs/verification/VERIFICATION-STANDARD.md"},
+    "postmortems": {"version": "1.2", "source": "postmortems/POSTMORTEMS-STANDARD.md", "target": "docs/postmortems/POSTMORTEMS-STANDARD.md"},
+    "agent-instructions": {"version": "1.2", "source": "agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md", "target": "docs/AGENT-INSTRUCTIONS-STANDARD.md"},
+    "changelogs": {"version": "1.1", "source": "changelogs/CHANGELOGS-STANDARD.md", "target": "docs/CHANGELOGS-STANDARD.md"},
+    "design-docs": {"version": "1.4", "source": "design-docs/DESIGN-DOCS-STANDARD.md", "target": "docs/design/DESIGN-DOCS-STANDARD.md"},
+    "backlogs": {"version": "1.1", "source": "backlogs/BACKLOGS-STANDARD.md", "target": "docs/backlog/BACKLOGS-STANDARD.md"}
+  }
+}

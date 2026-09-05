@@ -2,6 +2,9 @@ name: validate
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -10,7 +13,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Self-test
+      - name: Install distributable validator
+        run: python3 -m pip install --disable-pip-version-check .
+      - name: Verify validator rejects non-adopter repository
+        run: |
+          if ter validate .; then
+            echo "ERROR: canonical suite repository unexpectedly passed adopter validation"
+            exit 1
+          fi
+          echo "Canonical suite repository correctly rejected as a non-adopter"
+      - name: Self-test canonical validator
         run: python3 validate.py --self-test
       - name: Validate suite
         run: python3 validate.py
