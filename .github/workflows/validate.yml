@@ -15,8 +15,13 @@ jobs:
           python-version: "3.x"
       - name: Install distributable validator
         run: python3 -m pip install --disable-pip-version-check .
-      - name: Validate adopted repository contract
-        run: ter validate .
+      - name: Verify validator rejects non-adopter repository
+        run: |
+          if ter validate .; then
+            echo "ERROR: canonical suite repository unexpectedly passed adopter validation"
+            exit 1
+          fi
+          echo "Canonical suite repository correctly rejected as a non-adopter"
       - name: Self-test canonical validator
         run: python3 validate.py --self-test
       - name: Validate suite
