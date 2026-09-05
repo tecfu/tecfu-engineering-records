@@ -11,7 +11,9 @@ Project mode:
   checks an adopting project's docs/ tree: filename regexes, numbering
   (monotonic, contiguous, unique), spec<->verification 1:1 pairing, exact
   heading order (read from the standards' own templates — single source of
-  truth), unfilled placeholders, and index rows.
+  truth), unfilled placeholders, index rows, and the adoption manifest
+  (docs/ADOPTION.md) against the copied standard files and current suite
+  versions (staleness).
 
 Self-test:
     python3 validate.py --self-test
@@ -51,6 +53,12 @@ REF_RE = re.compile(
     r"(?<![A-Z0-9-])(?:[a-z0-9-]+/)+[A-Z][A-Z0-9-]*-(?:STANDARD|SKILLS)\.md"
 )
 BARE_RE = re.compile(r"(?<![A-Z-])(?:STANDARD|SKILLS)\.md")
+# adopted copies of the standards, e.g. docs/specs/FUNCTIONAL-SPECS-STANDARD.md
+COPIED_RE = re.compile(r"^[A-Z][A-Z0-9-]*-(?:STANDARD|SKILLS)\.md$")
+# adoption manifest row: | Standard | Version | File |
+ADOPTION_ROW_RE = re.compile(
+    r"^\|\s*([^|]+?)\s*\|\s*(\d+\.\d+)\s*\|\s*([^|]+?)\s*\|", re.M
+)
 
 
 # ---------- reusable checks (exercised by --self-test) ----------
@@ -100,6 +108,45 @@ def check_pairing(spec_nums, report_nums):
             f"vs reports {sorted(report_nums)}"
         ]
     return []
+
+
+def suite_versions(suite):
+    """Current suite versions, keyed by standard prefix (DECISION-RECORDS…)."""
+    out = {}
+    for d, prefix in DIRS.items():
+        p = suite / d / f"{prefix}-STANDARD.md"
+        if p.exists() and (m := VER_RE.search(p.read_text())):
+            out[prefix] = m.group(1)
+    return out
+
+
+def check_adoption(rows, copies, current):
+    """Adoption manifest rows vs copied standard files vs suite versions.
+
+    rows: [(standard, version, path)]; copies: {path: version-or-None};
+    current: {prefix: version} from the suite.
+    """
+    problems, declared = [], set()
+    for _name, ver, path in rows:
+        declared.add(path)
+        if path not in copies:
+            problems.append(f"row for missing copy: {path}")
+            continue
+        if copies[path] is None:
+            problems.append(f"{path}: copy has no '**Version:**' header")
+        elif copies[path] != ver:
+            problems.append(
+                f"{path} listed at {ver} but copy says {copies[path]}"
+            )
+        prefix = path.rsplit("/", 1)[-1].replace("-STANDARD.md", "")
+        if prefix in current and current[prefix] != ver:
+            problems.append(
+                f"{path} at {ver} is stale — suite has {current[prefix]}; re-copy"
+            )
+    for path in copies:
+        if path not in declared:
+            problems.append(f"no row for adopted copy: {path}")
+    return problems
 
 
 # ---------- suite mode ----------
@@ -188,12 +235,15 @@ def check_project(root):
             problems.append(f"missing {p} (adopt the standard first)")
             continue
         names = sorted(x.name for x in p.glob("*.md") if x.name != "README.md")
-        problems += [f"{area}: {x}" for x in check_numbering(names)]
+        # adopted copies of the standards live here too; they are validated
+        # via the adoption manifest below, not as numbered content documents
+        docs = [n for n in names if not COPIED_RE.match(n)]
+        problems += [f"{area}: {x}" for x in check_numbering(docs)]
 
         req = headings_from_template(suite / sdir / sfile)
         if req is None:
             problems.append(f"cannot parse template headings from {sdir}/{sfile}")
-        for name in names:
+        for name in docs:
             text = (p / name).read_text()
             if req is not None:
                 problems += [f"{area}/{name}: {x}" for x in check_headings_order(text, req)]
@@ -204,11 +254,11 @@ def check_project(root):
             problems.append(f"missing index {idx}")
         else:
             idx_text = idx.read_text()
-            for name in names:
+            for name in docs:
                 if name not in idx_text:
                     problems.append(f"{idx}: no index row for {name}")
 
-        nums = {int(m.group(1)) for n in names if (m := NUM_RE.match(n))}
+        nums = {int(m.group(1)) for n in docs if (m := NUM_RE.match(n))}
         if area == "docs/specs":
             spec_nums = nums
         if area == "docs/verification":
@@ -216,15 +266,61 @@ def check_project(root):
 
     if spec_nums is not None and report_nums is not None:
         problems += check_pairing(spec_nums, report_nums)
+
+    copies = {}
+    for pth in sorted(root.rglob("*-STANDARD.md")):
+        m = VER_RE.search(pth.read_text())
+        copies[str(pth.relative_to(root))] = m.group(1) if m else None
+    if copies:
+        man = root / "docs" / "ADOPTION.md"
+        if not man.exists():
+            problems.append(
+                "missing docs/ADOPTION.md (adoption manifest) — declare the "
+                "adopted standards and their versions"
+            )
+        else:
+            rows = [
+                (a, v, pth)
+                for a, v, pth in ADOPTION_ROW_RE.findall(man.read_text())
+            ]
+            problems += [
+                f"ADOPTION.md: {x}"
+                for x in check_adoption(rows, copies, suite_versions(suite))
+            ]
     return problems
 
 
+def _fenced_blocks(text):
+    """All ```-fenced blocks as (info_string, content); tolerates nested fences."""
+    blocks, lines, i, n = [], text.splitlines(), 0, len(text.splitlines())
+    while i < n:
+        m = re.match(r"^(`{3,})(.*)$", lines[i])
+        if not m:
+            i += 1
+            continue
+        fence, info = m.group(1), m.group(2).strip()
+        j = i + 1
+        while j < n and not re.match(rf"^`{{{len(fence)},}}\s*$", lines[j]):
+            j += 1
+        blocks.append((info, "\n".join(lines[i + 1 : j])))
+        i = j + 1
+    return blocks
+
+
 def headings_from_template(standard_path):
-    """Extract the '## ' heading order from the standard's template block."""
-    blocks = re.findall(r"```markdown\n(.*?)```", standard_path.read_text(), re.S)
-    for block in reversed(blocks):
+    """Extract the '## ' heading order from the standard's template block.
+
+    The template is the fenced markdown block whose H1 carries a `{...}`
+    placeholder (e.g. `# {short noun-phrase title}`) — selected by shape,
+    not position, so example blocks before or after it cannot hijack the
+    required heading list. Returns None (caller fails loudly) if absent.
+    """
+    for info, block in reversed(_fenced_blocks(standard_path.read_text())):
+        if info not in ("markdown", "md"):
+            continue
+        h1 = re.search(r"(?m)^# .*\{.*$", block)
         hs = [h.strip() for h in re.findall(r"(?m)^## (.+?)\s*$", block)]
-        if hs:
+        if h1 and hs:
             return hs
     return None
 
@@ -232,6 +328,8 @@ def headings_from_template(standard_path):
 # ---------- self-test ----------
 
 def self_test():
+    import tempfile
+
     assert check_numbering(["001-a.md", "002-b.md"]) == []
     assert any("contiguous" in p for p in check_numbering(["001-a.md", "003-c.md"]))
     assert any("duplicate" in p for p in check_numbering(["001-a.md", "001-b.md"]))
@@ -242,7 +340,35 @@ def self_test():
     assert check_placeholders("```\n{todo}\n```\nclean") == []
     assert check_pairing({1, 2}, {1, 2}) == []
     assert check_pairing({1, 2}, {1})
-    print("self-test OK (10 assertions)")
+
+    # adoption manifest: agree, mismatch, stale, missing row, ghost row
+    sv = {"DECISION-RECORDS": "1.6"}
+    copy = "docs/decisions/DECISION-RECORDS-STANDARD.md"
+    ok = [("Decision records", "1.6", copy)]
+    assert check_adoption(ok, {copy: "1.6"}, sv) == []
+    assert any("stale" in p for p in check_adoption(
+        [("Decision records", "1.5", copy)], {copy: "1.5"}, sv))
+    assert any("copy says" in p for p in check_adoption(ok, {copy: "1.4"}, sv))
+    assert any("no row" in p for p in check_adoption([], {copy: "1.6"}, sv))
+    assert any("missing copy" in p for p in check_adoption(
+        [("Decision records", "1.6", "docs/decisions/GHOST.md")], {copy: "1.6"}, sv))
+
+    # template heading extraction: shape-selected, survives nested fences
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td) / "S.md"
+        p.write_text(
+            "```markdown\n# Example\n## Wrong\n```\n"
+            "body text\n"
+            "```markdown\n# {title}\n## Right\n## Order\n```\n"
+        )
+        assert headings_from_template(p) == ["Right", "Order"]
+        # nested fence inside the template must not truncate the heading list
+        p.write_text("```markdown\n# {t}\n## A\n```markdown\n``\n## B\n```\n")
+        assert headings_from_template(p) == ["A", "B"]
+        p.write_text("no template here\n")
+        assert headings_from_template(p) is None
+
+    print("self-test OK (18 assertions)")
     return 0
 
 

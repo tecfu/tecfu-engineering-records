@@ -99,8 +99,12 @@ document.
 **Format standards** are adopted by copying the directory's
 `<NAME>-STANDARD.md` into the project — `docs/decisions/DECISION-RECORDS-STANDARD.md`,
 `docs/specs/FUNCTIONAL-SPECS-STANDARD.md`, `docs/verification/VERIFICATION-STANDARD.md`,
-`docs/postmortems/POSTMORTEMS-STANDARD.md` — noting the adopted version, and
-re-copying when you upgrade. Keep each area's index current — the spec and
+`docs/postmortems/POSTMORTEMS-STANDARD.md` — noting the adopted version in
+the project's **`docs/ADOPTION.md`** adoption manifest (one row per adopted
+standard: name, version, file), and re-copying when you upgrade.
+`validate.py --project` fails when the manifest, the copied files, or the
+current suite disagree — including stale rows older than the suite. Keep
+each area's index current — the spec and
 record indexes double as the capability and structure maps above — and copy
 the matching `<NAME>-SKILLS.md` files into the project's agent
 skills directory so coding agents apply the standards unprompted.
@@ -122,12 +126,13 @@ defined only in each standard's own file.
 The suite validates itself.
 
 - **`SUITE.md`** — the version manifest: one row per standard. `validate.py`
-  fails when the table and the standard files disagree — the staleness check
-  for adopted copies too.
+  fails when the table and the standard files disagree.
 - **`validate.py`** — the executable validator (stdlib only). `python3
   validate.py` checks this repo: naming convention, version/changelog/
   manifest agreement, cross-reference resolution. `python3 validate.py
   --project <path>` checks an adopting project: numbering (monotonic,
   contiguous, unique), spec↔verification 1:1 pairing, exact heading order
-  read from the standards' own templates, unfilled placeholders, index rows.
+  read from the standards' own templates, unfilled placeholders, index
+  rows, and the docs/ADOPTION.md adoption manifest against the copied
+  standards and the current suite (staleness).
 - **`.github/workflows/validate.yml`** — runs both on every push and PR.
