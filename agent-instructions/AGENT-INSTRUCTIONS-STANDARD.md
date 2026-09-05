@@ -1,6 +1,6 @@
 # Agent Instructions — Standard
 
-**Version:** 1.1 (2026-09-05)
+**Version:** 1.2 (2026-09-05)
 
 The single-file definition of the document that wires this suite into a
 project's coding agents: what a project's `AGENTS.md` contains, so every
@@ -37,8 +37,8 @@ every session, with no tribal knowledge.
 
 ## 2. File conventions
 
-- One file per project: `AGENTS.md` at the project root. Keep it to **one
-  page** — it loads into every agent session; length taxes every call.
+- One file per project: `AGENTS.md` at the project root. Keep it under
+  **~500 words** — it loads into every agent session; length taxes every call.
 - No numbering, no lifecycle: it is a living document, unlike the numbered
   records and specs it routes to. Changes are ordinary commits.
 - Point to the suite, don't copy it: link each standard's
@@ -119,6 +119,7 @@ table; load the named standard's `<NAME>-STANDARD.md` (and its
 
 ## 7. Changelog
 
+- **1.2 (2026-09-05)** — external review: AGENTS.md budget restated in words (~500), not pages (§2).
 - **1.1 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `AGENT-INSTRUCTIONS-STANDARD.md` and `AGENT-INSTRUCTIONS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.0 (2026-09-04)** — initial version: required AGENTS.md headings (§3),
   routing table (§4), template (§5).

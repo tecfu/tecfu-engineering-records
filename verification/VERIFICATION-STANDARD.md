@@ -1,6 +1,6 @@
 # Verification Report — Standard
 
-**Version:** 1.1 (2026-09-05)
+**Version:** 1.2 (2026-09-05)
 
 The single-file definition of how our projects prove a spec was delivered:
 one report per approved spec, mapping every acceptance criterion to
@@ -50,9 +50,9 @@ acceptance criteria decide done, the report shows they were met.
 
 Reports have no proposal phase — they are written after the fact. The header
 `Status:` is the verdict of the **latest run**: `pass`, `partial`, or
-`failed`. Each run appends a dated line to Runs (§4); the Results table
-always reflects the latest run. When a spec is superseded, its last report
-stays, unedited.
+`failed`. Each run appends a dated line to Runs (§4) recording the spec
+revision it checked; the Results table always reflects the latest run. When
+a spec is superseded, its last report stays, unedited.
 
 The report index in the project's `docs/verification/README.md` must stay
 current (one line per report: spec number, verdict, date).
@@ -61,7 +61,9 @@ current (one line per report: spec number, verdict, date).
 
 Sections, in order. The report **MUST** contain exactly these headings, in
 this order — a section that does not apply is written as `None.` rather than
-deleted. Keep the whole report to **one page**.
+deleted; nested `###` headings MAY be added beneath them. Keep the report
+to one sitting — if the Results table outgrows a screen, the spec it
+verifies is probably too big.
 
 1. **Title** — "Verification of 001 — Offline export for telemetry".
 2. **Status / Date / Spec / Verifier** — four header lines.
@@ -69,18 +71,23 @@ deleted. Keep the whole report to **one page**.
    (local / CI / staging), when.
 4. **Results** — the per-criterion table (§5).
 5. **Gaps** — fail/blocked criteria only, with owner and next step.
-6. **Runs** — one dated line per verification run.
+6. **Runs** — one dated line per verification run, with the spec revision
+    checked.
 7. **References** — spec, related records, run logs.
 
 ## 5. Rules
 
-- **Every criterion, no omissions.** Each acceptance criterion from the spec
-  appears as a row, in spec order. More rows than criteria means the report
-  is wrong — or the spec needed an amendment.
+- **Every criterion, no omissions.** Each acceptance criterion (`AC-N.M`)
+  from the spec appears as a row, in spec order. More rows than criteria
+  means the report is wrong — or the spec needed an amendment.
 - **Evidence must be re-runnable.** A command plus expected output, a test
   name, or a link to a run log. "Manually checked, looks fine" is not
   evidence — state exactly what was done and observed, or script it.
 - **No evidence = `blocked`, never `pass`.**
+- **Evidence names its type.** `deterministic` (same result every run),
+  `environment-dependent` (re-run in the recorded Environment), or
+  `observational` (a named person did X and observed Y). Re-runnable is not
+  the same as reproducible — say which one you have.
 - **The report never changes the contract.** A failure means fix, amend
   (spec §3), or supersede — never reinterpret a criterion to pass it. If
   testing shows the criterion itself was wrong, that is a dated amendment in
@@ -104,14 +111,14 @@ deleted. Keep the whole report to **one page**.
 
 ## Results
 
-{One row per acceptance criterion from the spec — all of them, in order.
-Evidence must be re-runnable: a command plus expected output, a test name,
-or a link to a run log.}
+{One row per acceptance criterion (`AC-N.M`) from the spec — all of them, in
+order. Evidence must be re-runnable: a command plus expected output, a test
+name, or a link to a run log — and must name its type.}
 
-| Criterion (spec §) | Result | Evidence |
-|---|---|---|
-| FR-1: Given…, when…, then… | {pass / fail / blocked} | {test name, command, or link} |
-| FR-2: … | {…} | {…} |
+| Criterion | Result | Type | Evidence |
+|---|---|---|---|
+| AC-1.1: Given…, when…, then… | {pass / fail / blocked} | {deterministic / environment-dependent / observational} | {test name, command, or link} |
+| AC-1.2: … | {…} | {…} | {…} |
 
 ## Gaps
 
@@ -122,10 +129,12 @@ or a link to a run log.}
 
 ## Runs
 
-{One dated line per verification run; the latest run's verdict is the
+{One dated line per verification run, with the spec revision checked (short
+commit of the spec file, or `amendment N`); the latest run's verdict is the
 header Status:.}
 
-- {YYYY-MM-DD — {pass/partial/failed} — {scope, e.g. "full suite, 12/12 criteria"}}
+- {YYYY-MM-DD — {pass/partial/failed} — spec @ {short commit} — {scope, e.g.
+  "12/12 criteria"}}
 
 ## References
 
@@ -145,6 +154,7 @@ header Status:.}
 
 ## 8. Changelog
 
+- **1.2 (2026-09-05)** — external review: AC-N.M rows (§4–§6); typed evidence — deterministic / environment-dependent / observational (§5); spec revision recorded per run (§3, §4, §6); nested headings and one-sitting length (§4).
 - **1.1 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `VERIFICATION-STANDARD.md` and `VERIFICATION-SKILLS.md`, in the suite and in project adoption copies.
 - **1.0 (2026-09-04)** — initial version: one report per spec keyed by the
   spec's number (§2), run-log lifecycle (§3), exact-heading format (§4),

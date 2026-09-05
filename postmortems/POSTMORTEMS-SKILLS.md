@@ -23,7 +23,10 @@ disappointed, or a premortem line came true.
 1. Check the threshold (POSTMORTEMS-STANDARD.md §1). Below it — bug caught pre-release,
    nothing learned: a fix and a failing verification report cover it.
 2. Copy the template (`POSTMORTEMS-STANDARD.md` §6) verbatim; save as
-   `docs/postmortems/NNN-<topic-slug>.md` with the next free number,
+   `docs/postmortems/NNN-<topic-slug>.md` with the next free number —
+   re-list the directory immediately before naming; if your number was
+   taken while you worked, take the next one (`validate.py` flags
+   duplicates),
    `Status: draft`.
 3. Fill every `{placeholder}`. Keep §4 headings exactly, in order; a section
    that does not apply gets `None.`.

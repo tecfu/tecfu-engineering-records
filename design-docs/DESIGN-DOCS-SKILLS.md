@@ -42,8 +42,9 @@ Trigger: the design is settled enough to commit.
    present in Open questions (DESIGN-DOCS-STANDARD.md §3 close-time gate).
 3. Add or update the index row in the project's `docs/design/README.md`
    (topic, status, promoted-to).
-4. If nothing needed promoting, the design doc was the wrong tool — say so
-   in the doc and close it anyway; that is a useful signal about thresholds.
+4. Closing with nothing to promote is legitimate — set `Promoted to: None —
+   concluded no durable output was warranted`. "Do nothing" can be the
+   right answer; one line records it.
 
 ## Validation checklist
 

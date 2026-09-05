@@ -1,6 +1,6 @@
 # Design Decision Records — Standard
 
-**Version:** 1.5 (2026-09-05)
+**Version:** 1.6 (2026-09-05)
 
 The single-file definition of how our projects record design decisions: one
 short document per architecturally significant decision, written so a stranger
@@ -71,6 +71,11 @@ original deciders had.
 | `proposed` | recommendation written, not yet agreed |
 | `accepted` | agreed; the decision is in force |
 | `rejected` | considered and declined (keep the record — it prevents re-litigating) |
+
+A `rejected` record may carry one later annotation — the **only** permitted
+edit to a decided record besides the supersede line: append
+`— reconsidered by NNN` to the Status line. A new proposal that revisits
+rejected ground cites the old record in References: `Reconsiders: NNN`.
 | `superseded by NNN` | replaced by a newer decision; the old record stays, unedited |
 | `deprecated` | no longer applies (outdated by context, not by a successor) |
 
@@ -90,9 +95,10 @@ gap. The index links and groups; it never restates a record's content.
 
 Sections, in order. The record **MUST** contain exactly these headings, in
 this order — a section that does not apply is written as `None.` rather than
-deleted, so records stay diffable and machine-checkable. Keep the whole
-record to **one to three pages** — brevity is the point; link to analysis for
-depth. Write inverted-pyramid: the decision up top, details later.
+deleted, so records stay diffable and machine-checkable; nested `###`
+headings MAY be added beneath them. Keep the record to one sitting — past
+roughly 800 words, split the decision or tighten it. Write inverted-pyramid:
+the decision up top, details later.
 
 1. **Title** — short noun phrase: "Swarm for on-prem fleet".
 2. **Status / Date / Deciders / Supersedes** — four header lines.
@@ -101,8 +107,9 @@ depth. Write inverted-pyramid: the decision up top, details later.
    problem is being solved; state it as a question where possible.
 4. **Decision drivers** — the criteria that matter *for this decision*, as a
    short list. These become the rows of the matrix.
-5. **Considered options** — 2+ options, **always including the status quo**
-   ("do nothing"). Each: 1–3 sentences on what it is and why it's on the table.
+5. **Considered options** — 2+ options; include the status quo ("do
+   nothing") when it is a viable alternative, and if it is not, say why in
+   one line. Each: 1–3 sentences on what it is and why it's on the table.
 6. **Decision matrix** — the scoring table (§5 below).
 7. **Trade-offs** — per option: what it buys and what it costs, in prose. This
    is where the numbers' blind spots get addressed. A decision the matrix
@@ -138,6 +145,9 @@ should) overrule the table, but must explain why in Trade-offs.
   *this* decision). If weight disagreement is the actual dispute, derive them
   by AHP pairwise comparison (Saaty 1–9 scale) instead of guessing.
 - **Weighted total:** `Σ (score × weight) / (5 × total weight)` → 0–100%.
+- **Basis, per criterion.** Every score cites its basis: a measurement or a
+  link, or `judgment — {why}`. Measured beats argued; an unwritten basis is
+  a guess — mark it as such or drop the criterion.
 - **Closeness (required):** after the table, one line: the margin between the
   top two totals (in points) and **what would flip the decision** — the
   specific weight shift or score change that changes the winner (this is the
@@ -154,7 +164,9 @@ number. Nothing else distinguishes it.
 Promotion, when the owner accepts or rejects:
 
 1. move the file: `docs/ANALYSIS-<TOPIC>.md` →
-   `docs/decisions/NNN-<topic-slug>.md` with the next free number;
+   `docs/decisions/NNN-<topic-slug>.md` with the next free number — re-list
+   the directory immediately before naming; if your number was taken while
+   you worked, take the next one (`validate.py` flags duplicates);
 2. set `Status:` to `accepted` or `rejected` and `Date:` to the decision date;
 3. add the index row in the project's `docs/decisions/README.md`.
 
@@ -193,8 +205,8 @@ narrative. Where possible, state the problem as a question:
 
 ## Considered options
 
-{Always include the status quo. 1–3 sentences per option: what it is, why it's
-on the table.}
+{Include the status quo when viable; if not, one line on why not. 1–3
+sentences per option: what it is, why it's on the table.}
 
 - **A — {name}:** {…}
 - **B — {name}:** {…}
@@ -206,12 +218,12 @@ on the table.}
 1 poor, 2 marginal, 3 meets, 4 strong, 5 best-in-class. Total =
 Σ (score × weight) / (5 × Σweights), as % of the maximum possible.}
 
-| Criterion (weight) | A | B | C (status quo) |
-|---|---|---|---|
-| {criterion 1} (4 / 40%) | {0–5} | {0–5} | {0–5} |
-| {criterion 2} (3 / 30%) | {0–5} | {0–5} | {0–5} |
-| {criterion 3} (3 / 30%) | {0–5} | {0–5} | {0–5} |
-| **Total** | **{xx}%** | **{xx}%** | **{xx}%** |
+| Criterion (weight) | A | B | C (status quo) | Basis |
+|---|---|---|---|---|
+| {criterion 1} (4 / 40%) | {0–5} | {0–5} | {0–5} | {measurement, link, or judgment} |
+| {criterion 2} (3 / 30%) | {0–5} | {0–5} | {0–5} | {…} |
+| {criterion 3} (3 / 30%) | {0–5} | {0–5} | {0–5} | {…} |
+| **Total** | **{xx}%** | **{xx}%** | **{xx}%** | — |
 
 **Closeness:** {winner} leads {runner-up} by {n} points. {The specific weight
 shift or score change that would flip the decision — e.g. "if the weight on
@@ -249,7 +261,8 @@ where known). End with the premortem line:}
 ## References
 
 {Links: analysis docs (e.g. docs/ANALYSIS-*.md), specs, papers, prior/successor
-decision records, external sources behind any 2026-specific claim.}
+decision records, external sources behind any 2026-specific claim. Revisiting
+rejected ground? Cite it here: `Reconsiders: NNN`.}
 ```
 
 ## 8. Lineage & sources
@@ -286,6 +299,7 @@ The convention this standard is based on, in order of influence:
 
 ## 9. Changelog
 
+- **1.6 (2026-09-05)** — external review: status quo optional when not viable (§4, §7); per-criterion score basis (§5); reconsidered-by annotation and `Reconsiders: NNN` (§3, §7); collision-safe numbering (§6); nested headings and one-sitting length (§4).
 - **1.5 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `DECISION-RECORDS-STANDARD.md` and `DECISION-RECORDS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.4 (2026-09-05)** — record index upgraded to the **structure map**
   (records grouped by component; gaps visible) — the how-side half of the

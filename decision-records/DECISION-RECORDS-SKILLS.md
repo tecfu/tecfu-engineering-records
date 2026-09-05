@@ -31,11 +31,14 @@ record.
      not decided yet (uppercase kebab topic, e.g. `ANALYSIS-HYBRID-OVERFLOW.md`);
    - `docs/decisions/NNN-<topic-slug>.md` with the next free number when the
      decision is already made (lowercase kebab, e.g. `001-swarm-for-onprem-fleet.md`).
+     Re-list the directory immediately before naming — if your number was
+     taken while you worked, take the next one (`validate.py` flags duplicates).
 3. Fill every `{placeholder}`. Keep the §4 headings exactly, in order; a
    section that does not apply gets `None.` — never delete a heading.
 4. Build the matrix (§5): 4–7 criteria with weights 1–10 (normalized to 100%),
-   scores 0–5 per the anchor table, totals as % of maximum. Always include
-   the status quo as an option — "do nothing" is a real option.
+   scores 0–5 per the anchor table, totals as % of maximum. Include the
+   status quo as an option — "do nothing" is a real option — unless it is
+   not viable, in which case say why in one line.
 5. Add the mandatory **Closeness** line: the margin between the top two, and
    the specific weight shift or score change that would flip the winner.
 6. Run the validation checklist below; fix everything it flags before
@@ -49,7 +52,9 @@ record.
 Trigger: the owner accepts or rejects a proposed `ANALYSIS-<TOPIC>.md`.
 
 1. `git mv docs/ANALYSIS-<TOPIC>.md docs/decisions/NNN-<topic-slug>.md`
-   using the next free number — never reuse, never renumber.
+   using the next free number — never reuse, never renumber. Re-list the
+   directory immediately before naming; if your number was taken while you
+   worked, take the next one (`validate.py` flags duplicates).
 2. Set `Status:` to `accepted` or `rejected`; set `Date:` to the decision
    date.
 3. Add the index row to the project's `docs/decisions/README.md`.
@@ -62,8 +67,9 @@ Trigger: circumstances changed and a decided record no longer holds.
 1. Write a new record for the new decision (write skill above; it starts as a
    proposed ANALYSIS file unless the replacement is already decided).
 2. In the old record, change **only** the `Status:` line to
-   `superseded by NNN`. This is the single permitted edit to an accepted
-   record.
+   `superseded by NNN`. Status lines are the only in-place edit a decided
+   record ever gets: supersede here, or append `— reconsidered by NNN` to a
+   rejected record (DECISION-RECORDS-STANDARD.md §3).
 3. Never delete the old record; its history is the point.
 
 ## Validation checklist (run on every record you write or touch)

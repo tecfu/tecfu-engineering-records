@@ -1,6 +1,6 @@
 # Postmortem — Standard
 
-**Version:** 1.1 (2026-09-05)
+**Version:** 1.2 (2026-09-05)
 
 The single-file definition of how our projects learn from failure: one
 blameless document per incident, written so the premortem question ("if this
@@ -21,9 +21,12 @@ verification but disappointed anyway still gets a postmortem.
 
 ## 1. Scope, use cases & purpose
 
-**Scope:** a postmortem is required for any incident that reached a user, any
-broken promise an approved spec made (shipped and disappointed), and any
-premortem line that came true. Not for: bugs caught before release (a failing
+**Scope:** a postmortem is required for any incident with material user
+impact, any broken promise an approved spec made (shipped and disappointed),
+and any premortem line that came true. Material means: users noticed, data
+was at risk, a promise broke, or the failure class could repeat; transient
+single-user blips with nothing learned can stay a ticket paragraph. Not for:
+bugs caught before release (a failing
 verification report and a fix cover them), near-misses with nothing learned,
 or individual mistakes without systemic cause — the postmortem is about the
 system that allowed the mistake. When in doubt, write it: an over-written
@@ -43,7 +46,9 @@ lands in a document that owns it.
 
 - Postmortems live in the adopting project's `docs/postmortems/`, named
   `NNN-short-noun-phrase.md` — 3-digit zero-padded sequential number,
-  monotonic, **never reused**, assigned when written.
+  monotonic, **never reused**, assigned when written — re-list the directory
+  immediately before naming; if your number was taken while you worked,
+  take the next one (`validate.py` flags duplicates).
 - One incident per postmortem. A week with three small incidents gets three
   short ones, not one epic.
 - Copy the template from §6 to start.
@@ -67,7 +72,9 @@ current (one line per postmortem).
 
 Sections, in order. The postmortem **MUST** contain exactly these headings,
 in this order — a section that does not apply is written as `None.` rather
-than deleted. Keep it to **one to three pages**.
+than deleted; nested `###` headings MAY be added beneath them. Keep it as
+short as the incident deserves — past roughly 800 words of prose (tables
+excluded), tighten.
 
 1. **Title** — short noun phrase: "Fleet overflow lost telemetry batches".
 2. **Status / Date / Author / Incident** — four header lines.
@@ -92,7 +99,10 @@ than deleted. Keep it to **one to three pages**.
   decision record; behavior → spec amendment or supersession; tracking →
   tracker item. An action without a destination is a wish.
 - **Answer the premortem:** quote the premortem line from the relevant spec
-  or record and say whether it predicted this. This is the loop-closer.
+  or record and say whether it predicted this. This is the loop-closer. If
+  no applicable premortem exists (infrastructure, third-party, and
+  operational failures often have none), write `Premortem check: None — no
+  applicable premortem existed.` — never manufacture a connection.
 
 ## 6. The template
 
@@ -129,6 +139,7 @@ check:}
 - {cause 1 — {one-clause evidence}}
 - Premortem check: {"{the premortem line from spec/record NNN}" — predicted
   / didn't predict this, because {…}.}
+  (or: `None — no applicable premortem existed.`)
 
 ## Lessons
 
@@ -157,6 +168,7 @@ kept.}
 
 ## 8. Changelog
 
+- **1.2 (2026-09-05)** — external review: materiality threshold in scope (§1); premortem check may be `None` (§5, §6); nested headings and length guidance (§4); collision-safe numbering (§2).
 - **1.1 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `POSTMORTEMS-STANDARD.md` and `POSTMORTEMS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.0 (2026-09-04)** — initial version: blameless format with mandatory
   premortem check (§4, §5), draft→published lifecycle with routing rule

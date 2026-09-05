@@ -25,7 +25,8 @@ asks to verify a spec / prove done.
 2. Copy the template (`VERIFICATION-STANDARD.md` §6) verbatim; save as
    `docs/verification/NNN-<spec-slug>.md` — the spec's number, not a new one.
 3. Run every criterion. Record the environment (commit, version, where) in
-   §Environment and one row per criterion in §Results with re-runnable
+   §Environment and one row per criterion (`AC-N.M`) in §Results with
+   re-runnable, typed evidence
    evidence (command + expected output, test name, or run-log link).
 4. No evidence for a criterion → `blocked`, never `pass`.
 5. Set header `Status:` from the table: any fail/blocked → `partial` or
@@ -55,10 +56,11 @@ Trigger: a fix landed or the spec was amended; the user asks to re-verify.
       lines; Environment; Results; Gaps; Runs; References.
 - [ ] `Status:` ∈ {pass, partial, failed} and consistent with the Results
       table (any fail/blocked ⇒ not `pass`).
-- [ ] One row per acceptance criterion, in spec order — none skipped, none
-      invented.
+- [ ] One row per acceptance criterion (`AC-N.M`), in spec order — none
+      skipped, none invented.
 - [ ] Every `pass` row has re-runnable evidence (command, test name, or log
-      link) — no "manually checked".
+      link) that names its type (deterministic / environment-dependent /
+      observational) — no "manually checked".
 - [ ] Every fail/blocked row appears in Gaps with an owner and next step.
 - [ ] Runs has a dated line for the latest run matching the header Status.
 - [ ] No `{placeholders}` remain anywhere.

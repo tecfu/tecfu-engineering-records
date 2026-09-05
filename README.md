@@ -24,7 +24,7 @@ agents additionally load the matching SKILLS file.
 |     the WHAT — behavior     |                                      |   the HOW & WHY — choices   |
 |      a user can observe     |· one numbered doc, one topic         |     made while building     |
 |                             |· numbers never reused                |                             |
-|· numbered, testable FRs     |· immutable once agreed —             |· options incl. status quo   |
+|· numbered, testable FRs     |· immutable once agreed —             |· status quo on the table    |
 |· Given/When/Then = done     |  superseded, never rewritten         |· anchored 0–5 matrix        |
 |· must/should/may only       |· open questions + premortem          |  + mandatory closeness line |
 |· no design content          |· exact headings, same order          |· decision + consequences    |
@@ -116,3 +116,18 @@ Undecided work lives beside the indexes until promoted:
 `docs/ANALYSIS-<TOPIC>.md` (decision records), `docs/PROPOSAL-<TOPIC>.md`
 (functional specs). Lifecycle, format, template, and promotion mechanics are
 defined only in each standard's own file.
+
+## Tooling
+
+The suite validates itself.
+
+- **`SUITE.md`** — the version manifest: one row per standard. `validate.py`
+  fails when the table and the standard files disagree — the staleness check
+  for adopted copies too.
+- **`validate.py`** — the executable validator (stdlib only). `python3
+  validate.py` checks this repo: naming convention, version/changelog/
+  manifest agreement, cross-reference resolution. `python3 validate.py
+  --project <path>` checks an adopting project: numbering (monotonic,
+  contiguous, unique), spec↔verification 1:1 pairing, exact heading order
+  read from the standards' own templates, unfilled placeholders, index rows.
+- **`.github/workflows/validate.yml`** — runs both on every push and PR.

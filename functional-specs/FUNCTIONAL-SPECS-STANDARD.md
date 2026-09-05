@@ -1,6 +1,6 @@
 # Functional Specification — Standard
 
-**Version:** 1.3 (2026-09-05)
+**Version:** 1.4 (2026-09-05)
 
 The single-file definition of how our projects specify user-visible behavior:
 one short document per behavior change, written so the people building it know
@@ -74,10 +74,11 @@ so what was promised is on record when questions come up later.
 | `declined` | considered and not pursued (keep the file — it prevents re-litigating) |
 | `superseded by NNN` | replaced by a newer spec; the old file stays, unedited |
 
-Approved specs are **frozen**: the requirement text is never rewritten.
-Clarifications discovered during build are appended to the Amendments section
-as dated one-liners. Anything that changes **what the feature does** — not
-just what a requirement meant — is a new spec that supersedes this one. The
+Approved specs are **append-only records**: the requirement text is
+immutable; status changes only through lifecycle transitions; clarifications
+discovered during build are appended to the Amendments section as dated
+one-liners; anything that changes **what the feature does** — not just what
+a requirement meant — is a new spec that supersedes this one. The
 requirement text is the record of what was promised when work started;
 Amendments is the honest log of what changed mid-flight.
 
@@ -89,11 +90,12 @@ links and groups; it never restates a spec's requirements.
 
 ## 4. Format
 
-Sections, in order. The spec **MUST** contain exactly these headings, in this
-order — a section that does not apply is written as `None.` rather than
-deleted, so specs stay diffable and machine-checkable. Keep the whole spec to
-**one to three pages**. Write inverted-pyramid: a reader who stops after the
-Summary still knows what is changing.
+Sections, in order. The spec **MUST** contain exactly these top-level
+headings, in this order — a section that does not apply is written as `None.`
+rather than deleted, so specs stay diffable and machine-checkable; nested
+`###` headings MAY be added beneath them. Keep the spec to one sitting —
+past roughly 800 words, split it or tighten it. Write inverted-pyramid: a
+reader who stops after the Summary still knows what is changing.
 
 1. **Title** — short noun phrase: "Offline export for telemetry".
 2. **Status / Date / Author / Approver** — four header lines.
@@ -102,8 +104,8 @@ Summary still knows what is changing.
    name what this deliberately does not cover, so scope arguments end here.
 5. **Users & scenarios** — who uses this and the 2–4 scenarios that matter.
 6. **Functional requirements** — the numbered, testable behavior list (§5).
-7. **Acceptance criteria** — Given/When/Then per requirement; the done
-   checklist.
+7. **Acceptance criteria** — Given/When/Then criteria per requirement,
+   identified `AC-N.M` (§5); the done checklist.
 8. **Open questions & unknowns** — unresolved questions with owners, ending
    with the premortem line.
 9. **Amendments** — `None.` until approval; dated one-liners after.
@@ -117,11 +119,15 @@ Summary still knows what is changing.
   or test can pass/fail it. Unquantified vague words — "fast", "robust",
   "user-friendly", "efficient" — are banned; quantify ("under 2 s at p95") or
   cut.
-- **One requirement, one check.** No compound and-joined requirements; each
-  `FR-N` passes or fails independently.
-- **shall-verbs, used deliberately.** Use RFC 2119 keywords: `must` (the spec
-  fails without it), `should` (strong preference, a reason may overrule),
-  `may` (explicitly optional).
+- **One requirement, one behavior — many checks allowed.** No compound
+  and-joined requirements; each `FR-N` passes or fails independently. A
+  requirement MAY need several acceptance criteria (happy path, boundaries,
+  failure modes) — identify them `AC-N.M` under `FR-N` (`AC-1.1`, `AC-1.2`,
+  …). Verification walks every AC, not every FR.
+- **Normative keywords, used deliberately.** When normative force is
+  intended, use uppercase RFC 2119 keywords: MUST (the spec fails without
+  it), SHOULD (strong preference, a reason may overrule), MAY (explicitly
+  optional). Lowercase "must" is ordinary English.
 - **Behavior only — no design.** A functional spec says what the system does,
   never how: no components, libraries, data models, protocols, "we'll use X".
   That sentence belongs in `docs/ANALYSIS-<TOPIC>.md` and becomes a decision
@@ -144,7 +150,9 @@ Nothing else distinguishes it.
 Promotion, when the approver approves or declines:
 
 1. move the file: `docs/PROPOSAL-<TOPIC>.md` →
-   `docs/specs/NNN-<topic-slug>.md` with the next free number;
+   `docs/specs/NNN-<topic-slug>.md` with the next free number — re-list the
+   directory immediately before naming; if your number was taken while you
+   worked, take the next one (`validate.py` flags duplicates);
 2. set `Status:` to `approved` or `declined` and `Date:` to the decision date;
 3. add the index row in the project's `docs/specs/README.md`.
 
@@ -189,21 +197,23 @@ Non-goals:
 
 ## Functional requirements
 
-{Numbered FR-N, one testable statement each, must/should/may used
-deliberately. Behavior only — no components, libraries, or data models;
-those are decision records (docs/decisions/). Cover the boundary cases that
-matter or state explicitly that a case is unhandled.}
+{Numbered FR-N, one testable statement each; uppercase RFC 2119 keywords
+(MUST/SHOULD/MAY) where normative force is intended. Behavior only — no
+components, libraries, or data models; those are decision records
+(docs/decisions/). Cover the boundary cases that matter or state explicitly
+that a case is unhandled.}
 
 - **FR-1:** The system shall {observable behavior}.
 - **FR-2:** {…}
 
 ## Acceptance criteria
 
-{At least one Given/When/Then per requirement. This is the done checklist —
-each criterion must be runnable as a manual or automated test.}
+{Acceptance criteria per requirement, identified AC-N.M. This is the done
+checklist — each criterion must be runnable as a manual or automated test.}
 
 - **FR-1:**
-  - Given {context}, when {action}, then {observable outcome}.
+  - AC-1.1 — Given {context}, when {action}, then {observable outcome}.
+  - AC-1.2 — Given {boundary case}, when {action}, then {outcome}.
 
 ## Open questions & unknowns
 
@@ -255,6 +265,7 @@ The convention this standard is based on, in order of influence:
 
 ## 9. Changelog
 
+- **1.4 (2026-09-05)** — external review: append-only immutability model (§3); AC-N.M acceptance-criterion identifiers (§4, §5, §7); uppercase RFC 2119 keywords (§5, §7); collision-safe numbering (§6); nested headings and one-sitting length (§4).
 - **1.3 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `FUNCTIONAL-SPECS-STANDARD.md` and `FUNCTIONAL-SPECS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.2 (2026-09-05)** — spec index upgraded to the **capability map**
   (specs grouped by capability; gaps visible) — the what-side half of the

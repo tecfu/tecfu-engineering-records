@@ -18,7 +18,7 @@ operationalized. If this file ever disagrees with `FUNCTIONAL-SPECS-STANDARD.md`
 standard wins — fix this file.
 
 What a spec is for: **what** a user-visible change must do. How to build it
-and why: decision records (`../decision-records/SKILLS.md` in this repo,
+and why: decision records (`../decision-records/DECISION-RECORDS-SKILLS.md` in this repo,
 project's `docs/decisions/`). If you find design content in a spec, move it out; if a
 decision changes user-visible behavior, update the spec (supersede skill).
 
@@ -40,7 +40,8 @@ small tweak: a paragraph in the ticket/PR, not a spec.
 4. Write requirements per §5: numbered `FR-N`, one testable statement each,
    must/should/may deliberate, no design content, boundary cases covered or
    explicitly disclaimed.
-5. Write acceptance criteria: ≥1 Given/When/Then per requirement, runnable as
+5. Write acceptance criteria: ≥1 Given/When/Then per requirement, identified
+   `AC-N.M`, runnable as
    a test.
 6. Run the validation checklist below; fix everything it flags before
    presenting the spec.
@@ -53,7 +54,9 @@ small tweak: a paragraph in the ticket/PR, not a spec.
 Trigger: the approver approves or declines a proposed `PROPOSAL-<TOPIC>.md`.
 
 1. `git mv docs/PROPOSAL-<TOPIC>.md docs/specs/NNN-<topic-slug>.md` using the
-   next free number — never reuse, never renumber.
+   next free number — never reuse, never renumber. Re-list the directory
+   immediately before naming; if your number was taken while you worked,
+   take the next one (`validate.py` flags duplicates).
 2. Set `Status:` to `approved` or `declined`; set `Date:` to the approval
    date.
 3. Add the index row to the project's `docs/specs/README.md`.
@@ -67,8 +70,9 @@ requirement meant.
 1. Write a new spec for the new behavior (write skill above; it starts as a
    proposed PROPOSAL file unless the replacement is already agreed).
 2. In the old spec, change **only** the `Status:` line to
-   `superseded by NNN`. This is the single permitted edit to an approved
-   spec.
+   `superseded by NNN`. Status lines are the only in-place edit an approved
+   spec ever gets — Amendments stay append-only, requirement text never
+   changes.
 3. Never delete the old spec; the record of what was promised when work
    started is the point.
 
@@ -91,7 +95,7 @@ rewritten.
       "efficient", "intuitive" in requirements.
 - [ ] No design content (components, libraries, data models, "we'll use X") —
       that belongs in a decision record.
-- [ ] Every requirement has ≥1 Given/When/Then acceptance criterion.
+- [ ] Every requirement has ≥1 acceptance criterion (`AC-N.M`), each with
 - [ ] Goals & non-goals both present (non-goals may be "None.", heading stays).
 - [ ] Open questions each have an owner; premortem line present.
 - [ ] If the spec is `approved` and you are not running the promote or
