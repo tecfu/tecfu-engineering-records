@@ -1,7 +1,7 @@
 ---
 name: decision-records
 description: >
-  Execute the Architectural Decision Record Standard (STANDARD.md): write a
+  Execute the Architectural Decision Record Standard (DECISION-RECORDS-STANDARD.md): write a
   proposed decision record (ANALYSIS-*.md), write a numbered record for an
   already-made decision, promote a record on accept/reject, supersede a
   record, and validate records against the format. Use whenever the user asks
@@ -11,21 +11,21 @@ description: >
 
 # Decision records — agent workflows
 
-Source of truth: `STANDARD.md` (this repo; an adopting project keeps its copy
-at `docs/decisions/STANDARD.md`). These workflows are the standard,
-operationalized. If this file ever disagrees with `STANDARD.md`, the standard
+Source of truth: `DECISION-RECORDS-STANDARD.md` (next to this file; an adopting project keeps its copy
+at `docs/decisions/DECISION-RECORDS-STANDARD.md`). These workflows are the standard,
+operationalized. If this file ever disagrees with `DECISION-RECORDS-STANDARD.md`, the standard
 wins — fix this file.
 
 ## Skill: write a decision record
 
 Trigger: the user asks to record/document a decision, choose between
 alternatives, or "write an ADR". First check the significance test
-(STANDARD.md §1: affects structure, non-functional characteristics,
+(DECISION-RECORDS-STANDARD.md §1: affects structure, non-functional characteristics,
 dependencies, interfaces, or construction technique — or is expensive to
 reverse). Below the threshold: a normal code comment or commit message, not a
 record.
 
-1. Copy the template (`STANDARD.md` §7) verbatim.
+1. Copy the template (`DECISION-RECORDS-STANDARD.md` §7) verbatim.
 2. Save it as:
    - `docs/ANALYSIS-<TOPIC>.md` with `Status: proposed` when the owner has
      not decided yet (uppercase kebab topic, e.g. `ANALYSIS-HYBRID-OVERFLOW.md`);
@@ -82,7 +82,7 @@ Trigger: circumstances changed and a decided record no longer holds.
 - [ ] Decision is 1–2 sentences, active voice, "We will …".
 - [ ] Open questions end with the premortem line.
 - [ ] If the record is `accepted` and you are not running the promote or
-      supersede skill: stop — accepted records are immutable (STANDARD.md §3).
+      supersede skill: stop — accepted records are immutable (DECISION-RECORDS-STANDARD.md §3).
 
 ## Anti-patterns
 

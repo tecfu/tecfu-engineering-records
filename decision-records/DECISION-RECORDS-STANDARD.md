@@ -1,6 +1,6 @@
 # Design Decision Records — Standard
 
-**Version:** 1.1 (2026-09-04)
+**Version:** 1.5 (2026-09-05)
 
 The single-file definition of how our projects record design decisions: one
 short document per architecturally significant decision, written so a stranger
@@ -8,26 +8,47 @@ six months from now can see what we chose, why, and how close the alternatives
 came.
 
 **Adoption:** a project adopts this standard by copying this file to
-`docs/decisions/STANDARD.md` in that project, keeping its records and index
-there, and noting the adopted version. **AI agents:** `SKILLS.md` (this repo)
+`docs/decisions/DECISION-RECORDS-STANDARD.md` in that project, keeping its records and index
+there, and noting the adopted version. **AI agents:** `DECISION-RECORDS-SKILLS.md` (next to this file)
 defines the execution workflows and the record-validation checklist; follow
 it when asked to write, promote, or supersede a record.
+
+**Companion standard:** `../functional-specs/FUNCTIONAL-SPECS-STANDARD.md` (this repo) — the functional-spec
+standard covering **what** user-visible behavior a change must deliver and its
+acceptance criteria; this standard covers **how** it is built and **why**.
+Specs and records must agree: a record that changes observable behavior is
+paired with a spec amendment or supersession, and vice versa.
 
 Any change to this standard bumps the version and appends a line to the
 changelog (§9).
 
-## 1. What gets a record
+## 1. Scope, use cases & purpose
 
-A record is required for any **architecturally significant** decision
-(Nygard's test): one that affects the system's structure, non-functional
-characteristics, dependencies, interfaces, or construction technique — or that
-is hard/expensive to reverse. Examples: choosing an orchestrator, adopting a
-format/tool, defining a contract boundary, picking a data store, changing a
-deployment model.
+**Scope:** a record is required for any **architecturally significant**
+decision (Nygard's test): one that affects the system's structure,
+non-functional characteristics, dependencies, interfaces, or construction
+technique — or that is hard/expensive to reverse. Examples: choosing an
+orchestrator, adopting a format/tool, defining a contract boundary, picking a
+data store, changing a deployment model.
 
 Do **not** write records for: local style choices, single-function refactors,
 anything fully reversible in minutes. When in doubt, write it — an
 over-recorded decision is cheap, an under-recorded one is not.
+
+**Use cases:**
+
+- choosing between contested alternatives — the matrix (§5) forces a number
+  on every judgment and a closeness line on the result;
+- answering "why did we do it this way?" — from the record, not from
+  someone's memory;
+- onboarding — a new engineer reads the records and today's architecture
+  explains itself;
+- stopping re-litigation — a settled decision stays settled; reopening it
+  means superseding, not re-arguing in a hallway.
+
+**Purpose:** so a stranger six months from now can see what we chose, why,
+and how close the alternatives came — without needing the context the
+original deciders had.
 
 ## 2. File conventions
 
@@ -60,7 +81,10 @@ the collection is the honest history (Fowler: "the time to change old
 decisions will be clear from changes in the project's context").
 
 The record index in the project's `docs/decisions/README.md` must stay
-current (one line per record).
+current (one line per record) — and it is the **structure map**: records
+grouped under the component or area they shape, so the decision surface of
+the whole system is one page and a component with no records is a visible
+gap. The index links and groups; it never restates a record's content.
 
 ## 4. Format
 
@@ -262,10 +286,19 @@ The convention this standard is based on, in order of influence:
 
 ## 9. Changelog
 
+- **1.5 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `DECISION-RECORDS-STANDARD.md` and `DECISION-RECORDS-SKILLS.md`, in the suite and in project adoption copies.
+- **1.4 (2026-09-05)** — record index upgraded to the **structure map**
+  (records grouped by component; gaps visible) — the how-side half of the
+  suite's coverage hierarchy (README).
+- **1.3 (2026-09-04)** — §1 renamed to **Scope, use cases & purpose**
+  (explicit use cases and purpose); repo namespaced into per-standard
+  directories (companion now at `../functional-specs/FUNCTIONAL-SPECS-STANDARD.md`).
+- **1.2 (2026-09-04)** — added companion pointer to the functional-spec
+  standard (../functional-specs/FUNCTIONAL-SPECS-STANDARD.md).
 - **1.1 (2026-09-04)** — generalized from a single repo to the cross-project
   standard (adoption semantics in the intro, §2, §6); §4 headings made
   normative (exact headings in order, `None.` fillers, stable skeleton);
-  added SKILLS.md pointer for AI agents.
+  added DECISION-RECORDS-SKILLS.md pointer for AI agents.
 - **1.0 (2026-09-04)** — initial version: ADR-based format (§4), anchored
   0–5 weighted matrix with mandatory closeness line (§5), analysis↔record
   promotion lifecycle (§2, §6), template (§7).
