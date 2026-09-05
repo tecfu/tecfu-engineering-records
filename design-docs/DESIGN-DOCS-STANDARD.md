@@ -1,6 +1,6 @@
 # Design Doc — Standard (adoption)
 
-**Version:** 1.2 (2026-09-05)
+**Version:** 1.3 (2026-09-05)
 
 An **adoption standard**: design docs follow the well-known Google design-doc
 convention; this file fixes only where they live, how they relate to the
@@ -55,10 +55,13 @@ A design doc is **closed only when its durable outputs have landed**:
 - open questions that matter → the Open questions sections of those
   documents, each with an owner.
 
-Until then it stays open. Closing also requires: every `Promoted to:` link
-resolves to a real document, and the premortem line is present in Open
-questions — postmortems look for it. A closed design doc carries a
-`Promoted to:` line listing what it produced.
+Until then it stays open. "Do nothing" can be the right answer: a design
+exploration that concludes no durable output is warranted closes with
+`Promoted to: None — concluded no durable output was warranted`, one line
+recording the conclusion. Otherwise, closing also requires: every
+`Promoted to:` link resolves to a real document, and the premortem line is
+present in Open questions — postmortems look for it. A closed design doc
+carries a `Promoted to:` line listing what it produced, if anything.
 
 ## 4. Format (adopted)
 
@@ -110,6 +113,10 @@ depth the topic needs.}
 
 ## 7. Changelog
 
+- **1.3 (2026-09-05)** — external review: closing with no durable output is a
+  legitimate terminal outcome — `Promoted to: None — concluded no durable
+  output was warranted` (§3); the close-time gate applies only when there is
+  something to promote.
 - **1.2 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `DESIGN-DOCS-STANDARD.md` and `DESIGN-DOCS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.1 (2026-09-05)** — index requirement (§2), close-time gate: promotion
   links resolve + premortem present (§3), MUST-level headings (§4).

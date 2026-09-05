@@ -1,6 +1,6 @@
 # Suite — version manifest
 
-**Suite version:** 1.0 (2026-09-05)
+**Suite version:** 1.1 (2026-09-05)
 
 One row per standard. `validate.py` fails when this table and the standard
 files disagree. Bump the suite version whenever any row changes.
@@ -13,5 +13,5 @@ files disagree. Bump the suite version whenever any row changes.
 | Postmortem | format | 1.2 | postmortems/POSTMORTEMS-STANDARD.md |
 | Agent instructions | format | 1.2 | agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md |
 | Changelog | adoption | 1.1 | changelogs/CHANGELOGS-STANDARD.md |
-| Design doc | adoption | 1.2 | design-docs/DESIGN-DOCS-STANDARD.md |
+| Design doc | adoption | 1.3 | design-docs/DESIGN-DOCS-STANDARD.md |
 | Backlog | adoption | 1.1 | backlogs/BACKLOGS-STANDARD.md |
