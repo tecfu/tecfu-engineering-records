@@ -25,7 +25,6 @@ The fleet needs coordination without cloud dependence.
 |---|---|---|---|
 | cost (5 / 62.5%) | 4 | 2 | benchmarked on the test fleet |
 | ops simplicity (3 / 37.5%) | 3 | 4 | judgment — fewer parts for us to run |
-| **Total** | **72.5%** | **60.0%** | — |
 
 Closeness: Swarm leads Central broker by 7 points. A 2-point score drop on
 ops simplicity would flip it.
