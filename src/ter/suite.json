@@ -1,0 +1,15 @@
+{
+  "name": "tecfu-engineering-records",
+  "suite_version": "1.5",
+  "minimum_supported_suite": "1.5",
+  "standards": {
+    "functional-specs": {"version": "1.6", "path": "functional-specs/FUNCTIONAL-SPECS-STANDARD.md"},
+    "decision-records": {"version": "1.9", "path": "decision-records/DECISION-RECORDS-STANDARD.md"},
+    "verification": {"version": "1.2", "path": "verification/VERIFICATION-STANDARD.md"},
+    "postmortems": {"version": "1.2", "path": "postmortems/POSTMORTEMS-STANDARD.md"},
+    "agent-instructions": {"version": "1.2", "path": "agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md"},
+    "changelogs": {"version": "1.1", "path": "changelogs/CHANGELOGS-STANDARD.md"},
+    "design-docs": {"version": "1.4", "path": "design-docs/DESIGN-DOCS-STANDARD.md"},
+    "backlogs": {"version": "1.1", "path": "backlogs/BACKLOGS-STANDARD.md"}
+  }
+}
