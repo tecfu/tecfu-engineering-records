@@ -1,11 +1,11 @@
 {
   "name": "tecfu-engineering-records",
-  "suite_version": "1.5",
-  "minimum_supported_suite": "1.5",
+  "suite_version": "1.6",
+  "minimum_supported_suite": "1.6",
   "standards": {
     "functional-specs": {
       "kind": "format",
-      "version": "1.6",
+      "version": "1.7",
       "source": "functional-specs/FUNCTIONAL-SPECS-STANDARD.md",
       "target": "docs/specs/FUNCTIONAL-SPECS-STANDARD.md",
       "skills_source": "functional-specs/FUNCTIONAL-SPECS-SKILLS.md",
