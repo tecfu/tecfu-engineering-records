@@ -24,6 +24,8 @@ jobs:
           echo "Canonical suite repository correctly rejected as a non-adopter"
       - name: Self-test canonical validator
         run: python3 validate.py --self-test
+      - name: Self-test functional spec implementation validator
+        run: python3 validate_functional_specs.py --self-test
       - name: Validate suite
         run: python3 validate.py
       - name: Validate decision matrix weights

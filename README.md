@@ -18,7 +18,7 @@ agents additionally load the matching SKILLS file.
 
 ## Install
 
-Package version tracks the suite version (**1.6.0** ↔ suite **1.5**). Requires Python 3.10+.
+Package version tracks the suite version (**1.7.0** ↔ suite **1.6**). Requires Python 3.10+.
 
 ```bash
 # From this repository (until published to PyPI)
@@ -51,13 +51,13 @@ Full walkthrough (format vs adoption standards, CI, upgrades): [Adopting in a pr
 |       FUNCTIONAL SPEC       |              SHARED DNA              |       DECISION RECORD       |
 |     the WHAT — behavior     |                                      |   the HOW & WHY — choices   |
 |      a user can observe     |· one numbered doc, one topic         |     made while building     |
-|                             |· numbers never reused                |                             |
-|· numbered, testable FRs     |· immutable once agreed —             |· status quo on the table    |
-|· Given/When/Then = done     |  superseded, never rewritten         |· anchored 0–5 matrix        |
-|· must/should/may only       |· open questions + premortem          |  + mandatory closeness line |
-|· no design content          |· exact headings, same order          |· decision + consequences    |
-|· proposal → promotion       |· stranger-proof in 6 months          |· accepted → immutable       |
-|· docs/specs/NNN-slug.md     |                                      |· docs/decisions/NNN-slug.md |
+|                             |· numbers never reused                |· status quo on the table    |
+|· numbered, testable FRs     |· immutable once agreed —             |· anchored 0–5 matrix        |
+|· Given/When/Then = done     |  superseded, never rewritten         |  + mandatory closeness line |
+|· must/should/may only       |· open questions + premortem          |· decision + consequences    |
+|· no design content          |· exact headings, same order          |· accepted → immutable      |
+|· proposal → promotion       |· stranger-proof in 6 months          |· docs/decisions/NNN-slug.md |
+|· docs/specs/NNN-slug.md     |                                      |                             |
 └─────────────────────────────┼──────────────────────────────────────┘                             │
                               │  pipeline: spec the WHAT → record the HOW & WHY → build → verify;  │
                               │  "done" = every acceptance criterion has a passing report          │
@@ -132,7 +132,7 @@ document.
 ### Install the validator
 
 The recommended way to use the suite is the distributable `ter` CLI (Python
-3.10+). Package version tracks the suite version (currently **1.6.0** ↔ suite **1.5**).
+3.10+). Package version tracks the suite version (currently **1.7.0** ↔ suite **1.6**).
 
 ```bash
 pipx install tecfu-engineering-records
@@ -171,16 +171,22 @@ records the suite version and which standards the project has declared.
   files. They produce `AGENTS.md`, `CHANGELOG.md`, `docs/design/`, and
   tracker stories respectively.
 
-`ter validate` checks the manifest, that each declared format standard is
-present and at the expected version, and that the corresponding `docs/` area
-and index exist. For full document-graph checks (numbering, heading order,
-spec↔verification pairing, link integrity, matrix arithmetic), also run the
-suite's richer validator against the project:
+`ter validate` checks the **adoption contract**: manifest, declared format
+standard copies and versions, and required docs areas/indexes. For full
+document-graph checks (numbering, heading order, spec↔verification pairing,
+link integrity, matrix arithmetic), also run the suite's richer validator
+against the project:
 
 ```bash
 python3 /path/to/tecfu-engineering-records/validate.py --project .
+python3 /path/to/tecfu-engineering-records/validate_functional_specs.py --project .
 python3 /path/to/tecfu-engineering-records/validate_matrix.py   # optional
 ```
+
+`validate_functional_specs.py` additionally checks that every non-empty
+`Implementation work` table references real `FR-N` requirements and, when
+present, real `AC-N.M` acceptance criteria. Work-item status remains metadata
+and cannot redefine the functional contract.
 
 Replace an existing manifest with `ter adopt . --force`. Overwrite stale
 standard copies with `ter install-standards . --force` after reviewing the
@@ -210,6 +216,8 @@ CI example:
   run: python3 -m pip install tecfu-engineering-records
 - name: Validate engineering records
   run: ter validate .
+- name: Validate functional-spec implementation traceability
+  run: python3 /path/to/tecfu-engineering-records/validate_functional_specs.py --project .
 ```
 
 ### Standards files (summary)
@@ -255,7 +263,7 @@ ter hooks uninstall        # remove the ter-managed shim only
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/tecfu/tecfu-engineering-records
-    rev: v1.6.0   # pin a release tag
+    rev: v1.7.0   # pin a release tag
     hooks:
       - id: ter-validate
 ```
@@ -294,6 +302,7 @@ in CI (or pre-push if you accept the cost):
 
 ```bash
 python3 /path/to/tecfu-engineering-records/validate.py --project .
+python3 /path/to/tecfu-engineering-records/validate_functional_specs.py --project .
 ```
 
 Nested suite checkouts (directories that contain `SUITE.md`, e.g. a vendored
@@ -329,5 +338,9 @@ The suite validates itself.
   (`AC-N.M` ids, unique, under their `FR-N` group). Fixture-based integration
   tests (`tests/test_fixtures.py`) run the real validator against
   deliberately-broken project fixtures in `tests/fixtures/`.
-
-- **`.github/workflows/validate.yml`** — runs all three on every push and PR.
+- **`validate_functional_specs.py`** — the functional-spec traceability
+  validator. It checks the final `Implementation work` section, requires
+  non-empty work tables to map to existing `FR-N` requirements, and validates
+  optional `AC-N.M` mappings. It includes a self-test and is run by CI.
+- **`.github/workflows/validate.yml`** — runs the canonical validators on every
+  push and PR.

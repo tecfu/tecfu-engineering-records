@@ -41,11 +41,15 @@ small tweak: a paragraph in the ticket/PR, not a spec.
    must/should/may deliberate, no design content, boundary cases covered or
    explicitly disclaimed.
 5. Write acceptance criteria: ≥1 Given/When/Then per requirement, identified
-   `AC-N.M`, runnable as
-   a test.
-6. Run the validation checklist below; fix everything it flags before
+   `AC-N.M`, runnable as a test.
+6. If implementation work is already known, populate the final `Implementation
+   work` section. Link each work item to the `FR-N` requirements it realizes
+   and, when useful, the `AC-N.M` criteria it covers. Use the tracker as
+   traceability metadata, not as the source of truth for behavior. If no work
+   is externally tracked, write `None.`.
+7. Run the validation checklist below; fix everything it flags before
    presenting the spec.
-7. Indexing: numbered spec → add its row to the project's
+8. Indexing: numbered spec → add its row to the project's
    `docs/specs/README.md`. Proposed spec → no index row yet; the row appears
    at promotion.
 
@@ -87,7 +91,7 @@ rewritten.
 - [ ] Headings exactly in §4 order: Title; Status/Date/Author/Approver header
       lines; Summary; Goals & non-goals; Users & scenarios; Functional
       requirements; Acceptance criteria; Open questions & unknowns;
-      Amendments; References.
+      Amendments; References; Implementation work.
 - [ ] `Status:` ∈ {proposed, approved, declined, superseded by NNN}.
 - [ ] No `{placeholders}` remain anywhere.
 - [ ] Every requirement: numbered `FR-N`, single (non-compound) testable
@@ -99,6 +103,11 @@ rewritten.
 - [ ] Every requirement has ≥1 acceptance criterion (`AC-N.M`), each with
 - [ ] Goals & non-goals both present (non-goals may be "None.", heading stays).
 - [ ] Open questions each have an owner; premortem line present.
+- [ ] Implementation work is `None.` when no external tracker applies, or
+      every listed work item identifies at least one `FR-N`; `AC-N.M` links are
+      optional but SHOULD be used when a work item maps to specific criteria.
+- [ ] Work-item status is implementation metadata and does not redefine or
+      mutate the functional requirements.
 - [ ] If the spec is `approved` and you are not running the promote or
       supersede skill: stop — approved specs are frozen (FUNCTIONAL-SPECS-STANDARD.md §3).
 
@@ -111,5 +120,8 @@ rewritten.
   Amendments or superseding.
 - Merging two features into one spec — split into two documents (§2).
 - Numbering proposed specs, renumbering specs, or reusing numbers.
+- Treating Jira or another work tracker as authoritative over the spec.
+- Listing implementation work without linking it to the requirements it
+  realizes; use `FR-N` identifiers for durable traceability.
 - Writing a spec for something below the §1 threshold (refactors, regression
   fixes, small tweaks) — a paragraph in the ticket is the right size.

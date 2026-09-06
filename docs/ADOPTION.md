@@ -9,7 +9,7 @@ For reference, the current suite version and format-standard versions are:
 | Standard | Kind | Version | File |
 |---|---|---|---|
 | Decision records | format | 1.9 | decision-records/DECISION-RECORDS-STANDARD.md |
-| Functional specification | format | 1.6 | functional-specs/FUNCTIONAL-SPECS-STANDARD.md |
+| Functional specification | format | 1.7 | functional-specs/FUNCTIONAL-SPECS-STANDARD.md |
 | Verification report | format | 1.2 | verification/VERIFICATION-STANDARD.md |
 | Postmortem | format | 1.2 | postmortems/POSTMORTEMS-STANDARD.md |
 | Agent instructions | adoption | 1.2 | agent-instructions/AGENT-INSTRUCTIONS-STANDARD.md |
