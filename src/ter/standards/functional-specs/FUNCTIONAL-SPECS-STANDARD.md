@@ -1,6 +1,6 @@
 # Functional Specification — Standard
 
-**Version:** 1.6 (2026-09-05)
+**Version:** 1.7 (2026-09-06)
 
 The single-file definition of how our projects specify user-visible behavior:
 one short document per behavior change, written so the people building it know
@@ -114,6 +114,9 @@ reader who stops after the Summary still knows what is changing.
 9. **Amendments** — `None.` until approval; dated one-liners after.
 10. **References** — related decision records, prior/successor specs, design
     docs, external sources.
+11. **Implementation work** — optional traceability metadata linking external
+    implementation work to the requirements and, when useful, acceptance
+    criteria. This is not part of the functional contract.
 
 ## 5. Writing rules
 
@@ -165,6 +168,16 @@ reader who stops after the Summary still knows what is changing.
   Vague quality wishes ("be secure", "scale well", "be compliant") are
   banned exactly as "fast" or "robust" are banned — turn them into
   measurable criteria or move them out of the spec.
+- **Implementation traceability is metadata, not behavior.** The
+  `Implementation work` section MAY be omitted when no external work tracker
+  is used. When implementation work is tracked, each work item SHOULD link
+  to the `FR-N` requirements it realizes and MAY link to specific `AC-N.M`
+  criteria. Jira is a common example, but the format MUST remain
+  vendor-neutral: GitHub Issues, Linear, Azure Boards, or another tracker are
+  equally valid. The work tracker does not become authoritative over the
+  specification; changes to behavior still require the spec lifecycle in §3.
+  Work items MAY be updated as implementation progresses without changing the
+  requirements. A spec with no tracked work SHOULD say `None.` in the section.
 
 ## 6. Proposals and promotion
 
@@ -259,6 +272,17 @@ requirement text above is never rewritten.}
 
 {Links: related decision records (docs/decisions/NNN-*.md), prior/successor
 specs, design docs, external sources behind any claim.}
+
+## Implementation work
+
+Optional traceability metadata. Link each work item to the `FR-N` requirements
+it realizes and, when useful, to specific `AC-N.M` criteria. Use `None.` when
+there is no externally tracked implementation work.
+
+| Work item | Implementation | Requirements | Acceptance criteria | Status |
+|---|---|---|---|---|
+| [ENG-421](https://tracker.example/browse/ENG-421) | [PR #87](https://github.com/example/project/pull/87) | FR-1, FR-2 | AC-1.1, AC-2.1 | Done |
+| [ENG-422](https://tracker.example/browse/ENG-422) | [PR #91](https://github.com/example/project/pull/91) | FR-3 | AC-3.1–3.2 | In progress |
 ```
 
 ## 8. Lineage & sources
@@ -296,13 +320,17 @@ The convention this standard is based on, in order of influence:
 
 ## 9. Changelog
 
+- **1.7 (2026-09-06)** — added optional `Implementation work` traceability
+  metadata as the final spec section; defined vendor-neutral work-item links,
+  requirement/acceptance-criterion traceability, non-authoritative tracker
+  semantics, and `None.` for specs without tracked implementation work.
 - **1.6 (2026-09-05)** — writing rules (§5): explicit guidance for
   non-functional and quality attributes (quantified thresholds, measurement
   method, verification path, ISO 25010 vocabulary, SLI/SLO form); pure
   design realisations of NFRs stay in decision records.
 - **1.5 (2026-09-05)** — file conventions (§2): numbering gaps are errors —
-  numbers are contiguous from 001; never renumber, restore the file or let
-  the next free number fill the gap.
+  numbers are contiguous from 001; never renumber, restore the file or let the
+  next free number fill the gap.
 - **1.4 (2026-09-05)** — external review: append-only immutability model (§3); AC-N.M acceptance-criterion identifiers (§4, §5, §7); uppercase RFC 2119 keywords (§5, §7); collision-safe numbering (§6); nested headings and one-sitting length (§4).
 - **1.3 (2026-09-05)** — self-describing filenames: the standard and its skills file are named `FUNCTIONAL-SPECS-STANDARD.md` and `FUNCTIONAL-SPECS-SKILLS.md`, in the suite and in project adoption copies.
 - **1.2 (2026-09-05)** — spec index upgraded to the **capability map**
