@@ -22,6 +22,7 @@ PROPOSAL_RE = re.compile(r"^PROPOSAL-[A-Z0-9-]+\.md$")
 HEADING_RE = re.compile(r"(?m)^## (.+?)\s*$")
 FR_RE = re.compile(r"\bFR-(\d+)\b")
 AC_RE = re.compile(r"\bAC-(\d+)\.(\d+)\b")
+SEPARATOR_RE = re.compile(r"^:?-{3,}:?$")
 
 
 def section(text: str, heading: str) -> str | None:
@@ -71,7 +72,7 @@ def check_spec(path: Path) -> list[str]:
         return problems + [
             f"{path}: non-empty Implementation work must use a Markdown table or `None.`"
         ]
-    if len(table_lines) < 2:
+    if len(table_lines) < 3:
         return problems + [f"{path}: Implementation work table has no data rows"]
 
     header = [cell.strip().lower() for cell in table_lines[0].strip("|").split("|")]
@@ -83,8 +84,8 @@ def check_spec(path: Path) -> list[str]:
         )
         return problems
 
-    separator = table_lines[1].strip("|").replace("-", "").replace(":", "").replace(" ", "")
-    if separator:
+    separator_cells = [cell.strip() for cell in table_lines[1].strip("|").split("|")]
+    if len(separator_cells) != len(header) or not all(SEPARATOR_RE.fullmatch(cell) for cell in separator_cells):
         problems.append(f"{path}: Implementation work table is missing its separator row")
         return problems
 
@@ -152,8 +153,8 @@ def self_test() -> int:
         assert any("missing FR-9" in e for e in errors)
         assert any("missing AC-9.1" in e for e in errors)
 
-        spec.write_text(spec.read_text(encoding="utf-8").replace("FR-9 | AC-9.1", "FR-2 | AC-2.1")
-                        .replace("## Implementation work\n", "## References\n\nNone.\n\n## Implementation work\n", 1), encoding="utf-8")
+        restored = spec.read_text(encoding="utf-8").replace("FR-9 | AC-9.1", "FR-2 | AC-2.1")
+        spec.write_text(restored, encoding="utf-8")
         assert check_spec(spec) == []
 
     print("functional-spec implementation-work self-test OK")
