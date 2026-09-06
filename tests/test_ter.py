@@ -21,7 +21,7 @@ from ter.validator import (
 class ValidatorTests(unittest.TestCase):
     def test_suite_metadata_has_format_and_adoption(self):
         meta = suite_metadata()
-        self.assertEqual(meta["suite_version"], "1.5")
+        self.assertEqual(meta["suite_version"], "1.6")
         fmt = format_standards(meta)
         self.assertIn("functional-specs", fmt)
         self.assertIn("decision-records", fmt)
@@ -106,7 +106,6 @@ class ValidatorTests(unittest.TestCase):
                 adopt(root, standards=["functional-specs", "decision-records"]), []
             )
             self.assertEqual(install_standards(root), [])
-            # capture via running main
             import io
             from contextlib import redirect_stdout, redirect_stderr
 
@@ -139,7 +138,7 @@ class HookTests(unittest.TestCase):
         self.assertIn("ter-managed git hook", text)
         self.assertIn("ter validate", text)
         self.assertTrue(os.access(hook, os.X_OK))
-        self.assertEqual(install_hooks(root), [])  # idempotent reinstall
+        self.assertEqual(install_hooks(root), [])
         self.assertEqual(uninstall_hooks(root), [])
         self.assertFalse(hook.exists())
 
@@ -151,7 +150,7 @@ class HookTests(unittest.TestCase):
         self.assertIn("refusing to overwrite", install_hooks(root)[0])
         self.assertIn("not ter-managed", uninstall_hooks(root)[0])
         self.assertEqual(hook.read_text(), "#!/bin/sh\necho custom\n")
-        self.assertEqual(install_hooks(root, force=True), [])  # forced replace
+        self.assertEqual(install_hooks(root, force=True), [])
         self.assertIn("ter-managed git hook", hook.read_text())
 
     def test_install_outside_git_repo(self):
@@ -188,4 +187,3 @@ class HookTests(unittest.TestCase):
         r = subprocess.run(["sh", str(hook)], input="", capture_output=True,
                            text=True, cwd=root, env=self._no_ter_env())
         self.assertEqual(r.returncode, 0, r.stderr)
-
